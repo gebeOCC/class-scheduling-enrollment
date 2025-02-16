@@ -9,6 +9,7 @@ export default function AuthenticatedLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     useEffect(() => {
+        console.log(user)
         const handleResize = () => {
             if (window.innerWidth <= 640) {
                 setSidebarOpen(false);
@@ -34,7 +35,7 @@ export default function AuthenticatedLayout({ children }) {
             {sidebar}
             <div className="flex flex-col flex-grow">
                 <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} user={user} />
-                <main>{children}</main>
+                <main className="flex-grow p-4 bg-[#F0F4F8] overflow-auto">{children}</main>
             </div>
         </div>
     );
