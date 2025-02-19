@@ -1,42 +1,72 @@
-import { usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo } from 'react';
-import Header from '@/Components/Header';
-import SideBar from '@/Components/SideBar';
+import { usePage } from "@inertiajs/react";
+import { AppSidebar } from "../Components/AppSidebar"
+import Dropdown from "@/Components/Dropdown";
+import { useState } from "react";
+import { useRef } from "react";
+import { useEffect } from "react";
+import NavLink from "@/Components/NavLink";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+
+import {
+    SidebarInset,
+    SidebarProvider,
+    SidebarTrigger,
+} from "@/components/ui/sidebar"
 
 export default function AuthenticatedLayout({ children }) {
     const user = usePage().props.auth.user;
-    const [onMobile, setOnMobile] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    // console.log(user)
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
     useEffect(() => {
-        console.log(user)
-        const handleResize = () => {
-            if (window.innerWidth <= 640) {
-                setSidebarOpen(false);
-                setOnMobile(true);
-            } else if (window.innerWidth > 640 && onMobile) {
-                setSidebarOpen(true);
-                setOnMobile(false);
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setDropdownOpen(false);
             }
         };
 
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
-    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-    // Memoize the sidebar to prevent re-rendering
-    const sidebar = useMemo(() => <SideBar sidebarOpen={sidebarOpen} />, [sidebarOpen]);
-
     return (
-        <div className="flex h-svh overflow-hidden">
-            {sidebar}
-            <div className="flex flex-col flex-grow">
-                <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} user={user} />
-                <main className="flex-grow p-4 bg-[#F0F4F8] overflow-auto">{children}</main>
-            </div>
-        </div>
+        <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+                <header className="sticky top-0 py-2 px-4 flex shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                    <div className="flex items-center gap-2">
+                        <SidebarTrigger className="-ml-1" />
+                        {/* <Separator orientation="vertical" className="mr-2 h-4" />
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem className="hidden md:block">
+                                    <BreadcrumbLink href="#">
+                                        Building Your Application
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator className="hidden md:block" />
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb> */}
+                    </div>
+                </header>
+                {children}
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

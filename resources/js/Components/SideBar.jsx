@@ -1,21 +1,75 @@
 import React from 'react'
 
 import { usePage, Link } from '@inertiajs/react';
+import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+import { SidebarProvider } from "@/components/ui/sidebar"; // Adjust path if
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from "@/components/ui/sidebar"
+
+// Menu items.
+const items = [
+    {
+        title: "Home",
+        url: "#",
+        icon: Home,
+    },
+    {
+        title: "Inbox",
+        url: "#",
+        icon: Inbox,
+    },
+    {
+        title: "Calendar",
+        url: "#",
+        icon: Calendar,
+    },
+    {
+        title: "Search",
+        url: "#",
+        icon: Search,
+    },
+    {
+        title: "Settings",
+        url: "#",
+        icon: Settings,
+    },
+]
+
 export default function SideBar({ sidebarOpen }) {
 
     const { auth } = usePage().props; // Get user data from Inertia
     const sidebarItems = auth?.sidebar || [];
     return (
-        <aside className={`h-full fixed top-0 left-0 z-50  md:h-auto md:static bg-[#3e5c76] text-white flex-shrink-0 flex-col justify-between lg:block transition-all duration-200 ease-in-out ${sidebarOpen ? `'w-16 md:60 w-60` : `-translate-x-full md:translate-x-0 w-16`}`}>
-            <div className="flex flex-col h-full">
-                <div
-                    className={`w-full p-2 flex items-center h-14 justify-center`}
-                >
-                    <h2 className="text-4xl font-bold">
-                        OCC
-                    </h2>
-                </div>
-            </div >
-        </aside >
+        <SidebarProvider>
+            <Sidebar>
+                <SidebarContent>
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Application</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {items.map((item) => (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild>
+                                            <a href={item.url}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </a>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                </SidebarContent>
+            </Sidebar>
+        </SidebarProvider>
     )
 }

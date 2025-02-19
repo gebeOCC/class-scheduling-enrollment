@@ -10,4 +10,13 @@ export default defineConfig({
         }),
         react(),
     ],
+    // server: {
+    //     host: '10.116.205.226', // Use your local network IP
+    //     port: 5173,
+    //     strictPort: true,
+    //     cors: {
+    //         origin: 'http://10.116.205.226:8000', // Allow requests from Laravel backend
+    //         credentials: true,
+    //     },
+    // },
 });
