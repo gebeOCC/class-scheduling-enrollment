@@ -20,6 +20,7 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/toaster"
 
 export default function AuthenticatedLayout({ children }) {
     const user = usePage().props.auth.user;
@@ -46,7 +47,7 @@ export default function AuthenticatedLayout({ children }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="sticky top-0 py-2 px-4 flex shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                <header className="sticky top-0 py-2 px-4 flex shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 w-max">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger className="-ml-1" />
                         {/* <Separator orientation="vertical" className="mr-2 h-4" />
@@ -66,6 +67,7 @@ export default function AuthenticatedLayout({ children }) {
                     </div>
                 </header>
                 {children}
+                <Toaster />
             </SidebarInset>
         </SidebarProvider>
     );

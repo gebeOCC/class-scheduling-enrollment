@@ -36,7 +36,6 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
-
         // Perform a JOIN to get first_name and last_name
         $userData = $user ? DB::table('users')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
@@ -44,7 +43,7 @@ class HandleInertiaRequests extends Middleware
             ->select('users.id', 'password_change', 'user_id_no', 'user_role', 'first_name', 'middle_name', 'last_name', 'email_address')
             ->first() : null;
 
-        if (!$userData) {
+        if (!$userData || $userData->user_role == 'student' || $userData->user_role == 'faculty') {
             return [
                 ...parent::share($request),
                 'auth' => [
@@ -52,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                 ],
             ];
         }
+        
         // Get preparing or ongoing school year status and school year
         $schoolYearStatus = $this->getPreparingOrOngoingSchoolYear();
 

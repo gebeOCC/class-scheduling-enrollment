@@ -1,17 +1,12 @@
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import './Login.css'
 import OCC_LOGO from '../../../images/OCC_LOGO.png'
 import { useState } from 'react';
 import './Login.css'
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         user_id_no: '',
         password: '',
@@ -30,7 +25,7 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
-    const handleForgotPassword  = () => {
+    const handleForgotPassword = () => {
         
     }
 
@@ -85,8 +80,8 @@ export default function Login({ status, canResetPassword }) {
                             </div>
 
                             <button
-                                disabled={submitting}
-                                className="login-button">
+                                disabled={processing}
+                                className="login-button disabled:bg-blue-400">
                                 {submitting ? 'Logging in...' : 'Login'}
                             </button>
                         </form>
