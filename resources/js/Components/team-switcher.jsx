@@ -1,26 +1,13 @@
 import * as React from "react";
-import { ChevronsUpDown, Plus } from "lucide-react";
 import OCC_LOGO from '../../images/OCC_LOGO.png'
 
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-    SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
 
-export function TeamSwitcher({ teams }) {
+export function TeamSwitcher() {
     const { isMobile } = useSidebar();
-    const [activeTeam, setActiveTeam] = React.useState(teams[0]);
 
     return (
         <SidebarMenuButton

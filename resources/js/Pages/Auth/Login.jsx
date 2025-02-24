@@ -5,6 +5,7 @@ import OCC_LOGO from '../../../images/OCC_LOGO.png'
 import { useState } from 'react';
 import './Login.css'
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Head } from '@inertiajs/react';
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -31,6 +32,7 @@ export default function Login({ status }) {
 
     return (
         <GuestLayout>
+            <Head title="Login" />
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
                     {status}

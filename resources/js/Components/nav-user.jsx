@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/react';
 import { usePage } from "@inertiajs/react";
 import { formatFullNameFML } from '@/utilities/utils';
+import { ModeToggle } from '@/Components/mode-toggle';
 
 import {
     BadgeCheck,
@@ -81,12 +82,10 @@ export function NavUser() {
                             </DropdownMenuLabel>
                         </Link>
                         <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <Sparkles />
-                                Upgrade to Pro
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
+                        <div className='px-2 flex justify-between items-center'>
+                            Theme
+                            <ModeToggle />
+                        </div>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
                             <DropdownMenuItem>

@@ -21,6 +21,7 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "@/components/theme-provider"
 
 export default function AuthenticatedLayout({ children }) {
     const user = usePage().props.auth.user;
@@ -45,7 +46,9 @@ export default function AuthenticatedLayout({ children }) {
 
     return (
         <SidebarProvider>
-            <AppSidebar />
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                <AppSidebar />
+            </ThemeProvider>
             <SidebarInset>
                 <header className="sticky top-0 py-2 px-4 flex shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 w-max">
                     <div className="flex items-center gap-2">
@@ -66,7 +69,9 @@ export default function AuthenticatedLayout({ children }) {
                         </Breadcrumb> */}
                     </div>
                 </header>
-                {children}
+                <div className="flex-grow p-4 overflow-auto">
+                    {children}
+                </div>
                 <Toaster />
             </SidebarInset>
         </SidebarProvider>

@@ -51,7 +51,7 @@ class HandleInertiaRequests extends Middleware
                 ],
             ];
         }
-        
+
         // Get preparing or ongoing school year status and school year
         $schoolYearStatus = $this->getPreparingOrOngoingSchoolYear();
 
@@ -92,8 +92,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $userData,
-                'enrollmentOngoing' => $enrollmentOngoing,
-                'preparation' => $enrollmentPreparation,
+                'enrollment_status' => $schoolYearStatus['status'],
                 'courses' => $courses,
                 'schoolYear' => $schoolYear,
             ],

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "@inertiajs/react";
 import {
     Table,
     TableBody,
@@ -29,9 +30,10 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-
+import { Head } from '@inertiajs/react';
 import axios from "axios";
 import PreLoader from "@/Components/preloader/PreLoader";
+import { Separator } from "@/components/ui/separator"
 
 export default function EnrollmentCourseSection() {
     const { courseId, error } = usePage().props;
@@ -44,14 +46,14 @@ export default function EnrollmentCourseSection() {
     const { toast } = useToast()
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const { data, setData, post, errors, reset, setError, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         course_id: courseId,
         year_level_id: 0,
         section: "",
         max_students: 50
     });
 
-    const [processing, setProcessing] = useState(false);
+    // const [processing, setProcessing] = useState(false);
 
     const yearLevel =
         data.year_level_id === 1 ? 'First year' :
@@ -94,24 +96,19 @@ export default function EnrollmentCourseSection() {
             setError("max_students", "Max students must be between 15 and 100.");
             return;
         }
-        
-        setProcessing(true);
 
-        axios.post(route('add.new.section', data))
-            .then(response => {
-                if (response.data.message == 'success') {
-                    getEnrollmentCourseSection()
-                    reset()
-                    setIsDialogOpen(false)
-                    toast({
-                        description: "Section added successfully.",
-                        variant: "success",
-                    })
-                }
-            })
-            .finally(() => {
-                setProcessing(false);
-            })
+        post(route('add.new.section'), {
+            onSuccess: () => {
+                reset()
+                setIsDialogOpen(false)
+                toast({
+                    description: "Section added successfully.",
+                    variant: "success",
+                })
+                getEnrollmentCourseSection()
+            },
+            preserveScroll: true,
+        });
     };
 
     const getEnrollmentCourseSection = async () => {
@@ -128,12 +125,18 @@ export default function EnrollmentCourseSection() {
         getEnrollmentCourseSection()
     }, [])
 
-    if (fetching) return <PreLoader />
+    if (fetching) return (
+        <>
+            <PreLoader />
+            <Head title="Sections" />
+        </>
+    )
 
     if (error) return
 
     return (
-        <div className="p-4">
+        <>
+            <Head title="Sections" />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {yearLevels && yearLevels.length > 0 ? (
                     yearLevels.map((yearLevel) => (
@@ -142,7 +145,7 @@ export default function EnrollmentCourseSection() {
                                 <CardHeader className="px-6 mt-4">
                                     <CardTitle className="text-2xl">{yearLevel.year_level_name}</CardTitle>
                                 </CardHeader>
-                                {user.userRole !== "registrar" && (
+                                {user.user_role == "program_head" && (
                                     <CardHeader className="px-6 mt-4">
                                         <Button
                                             onClick={() => createNewSection(yearLevel.id)}
@@ -152,6 +155,7 @@ export default function EnrollmentCourseSection() {
                                     </CardHeader>
                                 )}
                             </div>
+                            <Separator />
                             <CardContent className="grid gap-4">
                                 <Table>
                                     <TableHeader>
@@ -177,14 +181,32 @@ export default function EnrollmentCourseSection() {
                                                     {section.student_count}/{section.max_students}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button className="text-purple-500" variant="link">Class</Button>
-                                                    <Button className="text-green-500" variant="link">Students</Button>
-                                                    <Button className="text-blue-500 hidden sm:inline" variant="link">Enroll Student</Button>
+                                                    <Link href={route('enrollment.view.class', {
+                                                        id: courseId,
+                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-'),
+                                                        section: section.section
+                                                    })}>
+                                                        <Button className="text-purple-500" variant="link">Class</Button>
+                                                    </Link>
+                                                    <Link href={route('enrollment.view.students', {
+                                                        id: courseId,
+                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-'),
+                                                        section: section.section
+                                                    })}>
+                                                        <Button className="text-green-500" variant="link">Students</Button>
+                                                    </Link>
+                                                    <Link href={route('enrollment.view.enroll-student', {
+                                                        id: courseId,
+                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-'),
+                                                        section: section.section
+                                                    })}>
+                                                        <Button className="text-blue-500 hidden sm:inline" variant="link">Enroll Student</Button>
+                                                    </Link>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
 
-                                        {yearLevel.year_section.length < 1 && 
+                                        {yearLevel.year_section.length < 1 &&
                                             <TableRow>
                                                 <TableCell className="font-semibold">No section </TableCell>
                                             </TableRow>
@@ -230,7 +252,7 @@ export default function EnrollmentCourseSection() {
                     </form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     );
 }
 

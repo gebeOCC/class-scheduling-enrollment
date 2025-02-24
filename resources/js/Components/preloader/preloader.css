@@ -32,9 +32,10 @@
 .cube-face {
   position: absolute;
   inset: 0;
-  background: #3d7cb1;
+  background: --sidebar-accent;
   border: solid 1px #ffffff;
 }
+
 .cube-face.shadow {
   transform: translateZ(-80px);
   animation: bouncing-shadow 2s infinite;

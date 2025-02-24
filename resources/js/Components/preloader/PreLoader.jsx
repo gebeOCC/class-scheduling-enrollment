@@ -2,18 +2,18 @@ import './preloader.css'
 
 function PreLoader() {
     return (
-        <div className="flex justify-center items-center h-full bg-opacity-50 bg-gray-100">
+        <div className="flex justify-center items-center h-full bg-opacity-50">
             <div className="scene">
                 <div className="cube-wrapper">
                     <div className="cube">
-                        <div className="cube-faces">
-                            <div className="cube-face shadow"></div>
-                            <div className="cube-face bottom"></div>
-                            <div className="cube-face top"></div>
-                            <div className="cube-face left"></div>
-                            <div className="cube-face right"></div>
-                            <div className="cube-face back"></div>
-                            <div className="cube-face front"></div>
+                        <div className="cube-faces bg-sidebar-accent">
+                            <div className="cube-face shadow bg-sidebar-accent"></div>
+                            <div className="cube-face bottom bg-sidebar-accent"></div>
+                            <div className="cube-face top bg-sidebar-accent"></div>
+                            <div className="cube-face left bg-sidebar-accent"></div>
+                            <div className="cube-face right bg-sidebar-accent"></div>
+                            <div className="cube-face back bg-sidebar-accent"></div>
+                            <div className="cube-face front bg-sidebar-accent"></div>
                         </div>
                     </div>
                 </div>

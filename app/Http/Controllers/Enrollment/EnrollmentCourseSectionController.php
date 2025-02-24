@@ -42,8 +42,6 @@ class EnrollmentCourseSectionController extends Controller
             'section' => $request->section,
             'max_students' => $request->max_students,
         ]);
-
-        return response(['message' => 'success']);
     }
 
     public function getEnrollmentCourseSections($hashedCourseId)
@@ -129,5 +127,20 @@ class EnrollmentCourseSectionController extends Controller
             'preparation' => $preparation,
             'school_year' => $schoolYear
         ];
+    }
+
+    public function viewClass()
+    {
+        return Inertia::render('Enrollment/ClassScheduling/ClassScheduling');
+    }
+
+    public function viewStudents()
+    {
+        return Inertia::render('Enrollment/EnrolledStudentList');
+    }
+
+    public function enrollStudent()
+    {
+        return Inertia::render('Enrollment/EnrollStudent');
     }
 }
