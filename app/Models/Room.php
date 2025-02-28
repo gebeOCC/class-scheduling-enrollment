@@ -15,6 +15,11 @@ class Room extends Model
         'room_name',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function Schedules()
     {
         return $this->hasMany(YearSectionSubjects::class, 'room_id');

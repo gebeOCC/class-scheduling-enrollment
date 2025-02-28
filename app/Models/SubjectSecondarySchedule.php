@@ -18,6 +18,11 @@ class SubjectSecondarySchedule extends Model
         'end_time',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function Room()
     {
         return $this->belongsTo(Room::class, 'room_id');

@@ -1,8 +1,10 @@
+import { Head } from '@inertiajs/react';
 import './preloader.css'
 
-function PreLoader() {
+function PreLoader({ title }) {
     return (
         <div className="flex justify-center items-center h-full bg-opacity-50">
+            <Head title={title} />
             <div className="scene">
                 <div className="cube-wrapper">
                     <div className="cube">

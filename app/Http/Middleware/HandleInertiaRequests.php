@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Illuminate\Support\Facades\DB;
-use App\Models\UserInformation;
 use App\Models\Course;
 use Carbon\Carbon;
 use App\Models\SchoolYear;

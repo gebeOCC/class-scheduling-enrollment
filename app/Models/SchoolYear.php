@@ -19,6 +19,10 @@ class SchoolYear extends Model
         'is_current',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 
     public function Semester()
     {

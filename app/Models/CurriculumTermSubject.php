@@ -13,6 +13,21 @@ class CurriculumTermSubject extends Model
     protected $fillable = [
         'curriculum_term_id',
         'subject_id',
-        'pre_requisite_subject_id',
+        'requisite_subject_name',
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
+    public function Subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
+    }
+
+    public function PreRequisiteSubjects()
+    {
+        return $this->hasMany(PreRequisiteSubjects::class, 'curriculum_term_subjects_id');
+    }
 }

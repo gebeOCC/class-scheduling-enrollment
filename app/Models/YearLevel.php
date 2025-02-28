@@ -16,6 +16,11 @@ class YearLevel extends Model
         'year_level_name',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function CurriculumTerm()
     {
         return $this->hasMany(CurriculumTerm::class, 'year_level_id');

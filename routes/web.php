@@ -9,7 +9,7 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect()->route('dashboard'); // Redirect to dashboard if authenticated
+        return redirect()->route('profile.edit'); // Redirect to dashboard if authenticated
     }
 
     return redirect()->route('login'); // Redirect to login if unauthenticated

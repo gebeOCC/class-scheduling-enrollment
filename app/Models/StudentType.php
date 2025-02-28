@@ -13,4 +13,9 @@ class StudentType extends Model
     protected $fillable = [
         'student_type_name',
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

@@ -16,6 +16,11 @@ class Faculty extends Model
         'active',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function User()
     {
         return $this->belongsTo(User::class, 'faculty_id');

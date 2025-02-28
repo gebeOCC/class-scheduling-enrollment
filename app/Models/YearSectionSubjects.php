@@ -21,7 +21,12 @@ class YearSectionSubjects extends Model
         'end_time',
     ];
 
-        public function Subject()
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
+    public function Subject()
     {
         return $this->belongsTo(Subject::class, 'subject_id');
     }

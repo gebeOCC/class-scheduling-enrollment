@@ -13,5 +13,10 @@ class Student extends Model
     protected $fillable = [
         'student_id',
         'application_no',
-    ];  
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

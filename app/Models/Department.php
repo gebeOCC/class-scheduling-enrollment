@@ -17,6 +17,11 @@ class Department extends Model
         'department_name_abbreviation',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function Course()
     {
         return $this->hasMany(Course::class, 'department_id');

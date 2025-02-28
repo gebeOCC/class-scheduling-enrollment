@@ -15,4 +15,9 @@ class FacultyRole extends Model
         'department_id',
         'faculty_role',
     ];
+    
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

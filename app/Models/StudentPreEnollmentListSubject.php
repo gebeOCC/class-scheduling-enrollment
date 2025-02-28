@@ -14,4 +14,9 @@ class StudentPreEnollmentListSubject extends Model
         'pre_enrollment_id',
         'subject_id',
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

@@ -1,9 +1,3 @@
-:root {
-    --background: #3d5c76;
-    --color: #ffffff;
-    --primary-color: #2463eb;
-}
-
 * {
     box-sizing: border-box;
 }
@@ -78,7 +72,7 @@ h1 {
 }
 
 .login-container form button {
-    background-color: var(--primary-color);
+    background-color: var(--primary);
     color: var(--color);
     display: block;
     padding: 13px;
@@ -123,7 +117,7 @@ h1 {
     position: absolute;
 }
 
-.illustration {
+.illustrationLogin {
     position: absolute;
     top: -5%;
     right: -10px;

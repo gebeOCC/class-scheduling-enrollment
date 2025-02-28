@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Enrollment\ClassScheduling;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
-use
-Illuminate\Http\Request;
+use Illuminate\Http\Request;
 
 class EnrollmentClassSchedulingController extends Controller
 {

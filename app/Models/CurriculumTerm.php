@@ -16,8 +16,23 @@ class CurriculumTerm extends Model
         'semester_id',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function CurriculumTermSubject()
     {
         return $this->hasMany(CurriculumTermSubject::class, 'curriculum_term_id');
+    }
+
+    public function Semester()
+    {
+        return $this->belongsTo(Semester::class, 'semester_id');
+    }
+
+    public function YearLevel()
+    {
+        return $this->belongsTo(YearLevel::class, 'year_level_id');
     }
 }

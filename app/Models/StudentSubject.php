@@ -15,6 +15,11 @@ class StudentSubject extends Model
         'year_section_subjects_id',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function YearSectionSubjects()
     {
         return $this->belongsTo(YearSectionSubjects::class, 'year_section_subjects_id');

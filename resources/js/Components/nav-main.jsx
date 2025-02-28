@@ -7,11 +7,13 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar";
 
 export function NavMain() {
     const { user } = usePage().props.auth;
     const currentUrl = usePage().url;
+    const { setOpenMobile } = useSidebar();
 
     // Define menu items based on user role
     const menuItems = [
@@ -21,11 +23,11 @@ export function NavMain() {
         ),
         ...(user.user_role === "program_head"
             ? [
-                { name: "Courses", route: "dashboard", icon: BookOpen },
+                { name: "Curriculum", route: "curriculum", icon: BookOpen },
                 { name: "Faculty List", route: "dashboard", icon: User },
             ]
             : []
-        ),  
+        ),
         ...(["registrar", "program_head", "evaluator", "faculty"].includes(user.user_role)
             ? [{ name: "Classes", route: "dashboard", icon: Presentation }]
             : []
@@ -36,14 +38,14 @@ export function NavMain() {
         <SidebarGroup>
             <SidebarMenu>
                 {menuItems.map((item, index) => (
-                    <SidebarMenuItem key={index}>
+                    <SidebarMenuItem onClick={() => setOpenMobile(false)}  key={index}>
                         <SidebarMenuButton
                             tooltip={item.name}
                             className={cn("h-10 text-md", currentUrl.startsWith(`/${item.route}`) && "bg-sidebar-accent text-sidebar-accent-foreground")}
                             asChild
                         >
-                            <Link href={route(item.route)} className="w-full flex items-center">
-                                <item.icon className="mr-2" /> {/* Render the icon dynamically */}
+                            <Link href={route(item.route)} className="w-full flex items-center" >
+                                <item.icon className="mr-2" />
                                 <span>{item.name}</span>
                             </Link>
                         </SidebarMenuButton>

@@ -21,5 +21,10 @@ class UserInformation extends Model
         'email_address',
         'present_address',
         'zip_code',
-    ];  
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

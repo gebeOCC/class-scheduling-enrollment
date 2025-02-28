@@ -15,6 +15,10 @@ class Course extends Model
         'course_name',
         'course_name_abbreviation',
     ];
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 
     public function Department()
     {
@@ -24,5 +28,10 @@ class Course extends Model
     public function YearSection()
     {
         return $this->hasMany(YearSection::class, 'course_id');
+    }
+
+    public function Curriculum()
+    {
+        return $this->hasMany(Curriculum::class, 'course_id');
     }
 }

@@ -18,6 +18,11 @@ class Subject extends Model
         'laboratory_hours',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function Schedules()
     {
         return $this->hasMany(YearSectionSubjects::class, 'subject_id');

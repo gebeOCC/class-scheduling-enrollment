@@ -1,4 +1,3 @@
-"use client";
 import { Link } from '@inertiajs/react';
 import { usePage } from "@inertiajs/react";
 import { formatFullNameFML } from '@/utilities/utils';
@@ -10,6 +9,7 @@ import {
     ChevronsUpDown,
     CreditCard,
     LogOut,
+    Palette,
     Sparkles,
 } from "lucide-react";
 
@@ -83,7 +83,10 @@ export function NavUser() {
                         </Link>
                         <DropdownMenuSeparator />
                         <div className='px-2 flex justify-between items-center'>
-                            Theme
+                            <div className='flex items-center'>
+                                <Palette className="h-4 w-4 mr-2" />
+                                Theme
+                            </div>
                             <ModeToggle />
                         </div>
                         <DropdownMenuSeparator />

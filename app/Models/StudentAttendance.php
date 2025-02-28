@@ -17,6 +17,11 @@ class StudentAttendance extends Model
         'attendance_status',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function YearSectionSubjects()
     {
         return $this->belongsTo(YearSectionSubjects::class, 'year_section_subjects_id');

@@ -18,4 +18,9 @@ class StudentPreEnollmentList extends Model
         'year_level_id',
         'pre_enrollment_status',
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

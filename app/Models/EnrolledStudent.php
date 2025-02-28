@@ -20,6 +20,11 @@ class EnrolledStudent extends Model
         'registration_number',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function User()
     {
         return $this->belongsTo(User::class, 'student_id');

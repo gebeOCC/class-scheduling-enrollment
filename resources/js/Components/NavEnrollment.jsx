@@ -8,12 +8,14 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar";
 import { DoorClosed, User, NotebookText } from "lucide-react";
 
 export function NavEnrollment() {
     const { user, courses, enrollment_status } = usePage().props.auth;
     const currentUrl = usePage().url; // Get the current route
+    const { setOpenMobile } = useSidebar();
 
     return (
         <SidebarGroup>
@@ -34,7 +36,7 @@ export function NavEnrollment() {
                                                 className={cn("h-10 text-md", isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
                                                 asChild
                                             >
-                                                <Link href={courseUrl} className="w-full flex items-center">
+                                                <Link onClick={() => setOpenMobile(false)} href={courseUrl} className="w-full flex items-center">
                                                     <BookOpen />
                                                     <span>{course.course_name_abbreviation}</span>
                                                 </Link>
@@ -50,6 +52,7 @@ export function NavEnrollment() {
                                         asChild
                                     >
                                         <Link
+                                            onClick={() => setOpenMobile(false)}
                                             href={route("dashboard")}
                                             className="w-full flex items-center">
                                             <LayoutDashboard />
@@ -64,6 +67,7 @@ export function NavEnrollment() {
                                         asChild
                                     >
                                         <Link
+                                            onClick={() => setOpenMobile(false)}
                                             href={route("room-schedules")}
                                             className="w-full flex items-center">
                                             <DoorClosed />
@@ -78,6 +82,7 @@ export function NavEnrollment() {
                                         asChild
                                     >
                                         <Link
+                                            onClick={() => setOpenMobile(false)}
                                             href={route("faculties-schedules")}
                                             className="w-full flex items-center">
                                             <User />
@@ -92,6 +97,7 @@ export function NavEnrollment() {
                                         asChild
                                     >
                                         <Link
+                                            onClick={() => setOpenMobile(false)}
                                             href={route("subjects-schedules")}
                                             className="w-full flex items-center">
                                             <NotebookText />

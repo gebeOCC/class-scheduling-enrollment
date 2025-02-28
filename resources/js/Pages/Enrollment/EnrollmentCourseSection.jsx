@@ -38,7 +38,6 @@ import { Separator } from "@/components/ui/separator"
 export default function EnrollmentCourseSection() {
     const { courseId, error } = usePage().props;
     const user = usePage().props.auth.user;
-    console.log(courseId)
 
     const [yearLevels, setYearLevels] = useState([]);
     const [fetching, setFetching] = useState(true);
@@ -112,7 +111,7 @@ export default function EnrollmentCourseSection() {
     };
 
     const getEnrollmentCourseSection = async () => {
-        await axios.get(route("get.enrollment.course.section", courseId))
+        await axios.post("")
             .then(response => {
                 setYearLevels(response.data)
             })
@@ -125,12 +124,7 @@ export default function EnrollmentCourseSection() {
         getEnrollmentCourseSection()
     }, [])
 
-    if (fetching) return (
-        <>
-            <PreLoader />
-            <Head title="Sections" />
-        </>
-    )
+    if (fetching) return <PreLoader title="Sections" />
 
     if (error) return
 
@@ -142,7 +136,7 @@ export default function EnrollmentCourseSection() {
                     yearLevels.map((yearLevel) => (
                         <Card key={yearLevel.id} className={cn("w-full")}>
                             <div className="flex justify-between items-center mb-2">
-                                <CardHeader className="px-6 mt-4">
+                                <CardHeader>
                                     <CardTitle className="text-2xl">{yearLevel.year_level_name}</CardTitle>
                                 </CardHeader>
                                 {user.user_role == "program_head" && (
@@ -244,14 +238,26 @@ export default function EnrollmentCourseSection() {
                             {errors.max_students && <p className="text-red-500">{errors.max_students}</p>}
                         </div>
                         <DialogFooter>
-                            <Button type="submit" disabled={processing} className="disabled:bg-blue-400">Submit</Button>
-                            {/* <Button disabled={processing} variant="outline" onClick={() => setIsDialogOpen(false)}>
+                            {/* Cancel button explicitly set to type="button" so it's not triggered on Enter */}
+                            <Button
+                                type="button"
+                                disabled={processing}
+                                variant="outline"
+                                onClick={() => setIsDialogOpen(false)}>
                                 Cancel
-                            </Button> */}
+                            </Button>
+                            {/* Submit button comes first, so Enter triggers this instead of Cancel */}
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="disabled:bg-blue-400">
+                                Submit
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
+
         </>
     );
 }

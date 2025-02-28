@@ -19,6 +19,11 @@ class YearSection extends Model
         'max_students',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function EnrolledStudents()
     {
         return $this->hasMany(EnrolledStudent::class, 'year_section_id');
