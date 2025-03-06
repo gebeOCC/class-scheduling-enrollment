@@ -6,7 +6,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Button } from '@/Components/ui/button';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Head } from '@inertiajs/react';
-import { Eye, SquarePlus } from 'lucide-react';
+import { Eye, SquarePlus, LoaderCircle } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,10 +27,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from '@/Components/ui/skeleton';
 
 export default function CoursesCurriculumLists() {
     const [coursesCurriculums, setCoursesCurriculums] = useState([]);
+    const [activeCurriculums, setActiveCurriculums] = useState([]);
+    const [courseCurriculums, setCourseCurriculums] = useState([]);
     const [fetching, setFetching] = useState(true);
+    const [gettingSchoolYear, setGettingSchoolYear] = useState(true);
     const [currActiveOpen, setCurrActiveOpen] = useState(false)
 
     const [selectedCourse, serSelectedCourse] = useState({
@@ -38,6 +42,8 @@ export default function CoursesCurriculumLists() {
         course_name: '',
         course_name_abb: ''
     })
+
+    const yearLevels = ["First Year", "Second Year", "Third Year", "Fourth Year"];
 
     useEffect(() => {
         axios.post(route('courses.curriculum.list'))
@@ -50,26 +56,35 @@ export default function CoursesCurriculumLists() {
             .catch(error => console.error("Error fetching data:", error));
     }, []);
 
-    const handleAddCurriculum = (courseId) => {
-        alert(`Add Curriculum for Course ID: ${courseId}`);
-        // Implement your add curriculum logic here
-    };
-
-    const handleActiveCurriculum = (courseId) => {
-        alert(`Active Curriculum for Course ID: ${courseId}`);
-        // Implement your active curriculum logic here
-    };
-
-    const openActiveCurriculum = (courseId, course_name, course_name_abb) => {
+    const openActiveCurriculum = async (courseId, course_name, course_name_abb) => {
         serSelectedCourse({
             courseId: courseId,
             course_name: course_name,
             course_name_abb: course_name_abb
         })
+        setGettingSchoolYear(true)
         setCurrActiveOpen(true)
+
+        await axios.post('get-course-active-curriculum', { courseId: courseId })
+            .then(response => {
+                setActiveCurriculums(response.data.active_currs)
+                setCourseCurriculums(response.data.curriculums)
+            })
+            .finally(() => {
+                setGettingSchoolYear(false)
+            })
     }
 
-    if (fetching) return <PreLoader title="Curriculum List" />;
+    const setActiveCurr = async (name, value) => {
+        setActiveCurriculums(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        await axios.post('set-curriculum-term-active', { courseId: selectedCourse.courseId, yearLevel: name, curriculumId: value })
+    };
+
+    if (fetching) return <PreLoader title="Curriculum List" />
 
     return (
         <>
@@ -126,7 +141,7 @@ export default function CoursesCurriculumLists() {
                                     <Button
                                         variant="default"
                                         size="sm"
-                                        onClick={() => openActiveCurriculum(course.id)}>
+                                        onClick={() => openActiveCurriculum(course.id, course.course_name, course.course_name_abbreviation)}>
                                         Add Curriculum
                                         <SquarePlus className="w-5 h-5" />
                                     </Button>
@@ -143,77 +158,49 @@ export default function CoursesCurriculumLists() {
                     ))}
                 </div>
             )}
+
             <AlertDialog open={currActiveOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Active Curriculum</AlertDialogTitle>
+                        <AlertDialogTitle onClick={() => console.log(activeCurriculums)}>Active Curriculum</AlertDialogTitle>
                         <AlertDialogDescription>
                             {selectedCourse.course_name} ({selectedCourse.course_name_abb})
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Year Level</TableHead>
-                                <TableHead>School Year</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell>First Year</TableCell>
-                                <Select>
-                                    <SelectTrigger className="w-1/2 border-0 focus:ring-0">
-                                        <SelectValue placeholder="School Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="est">2019-2020</SelectItem>
-                                        <SelectItem value="cst">2023-2024</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Second Year</TableCell>
-                                <Select>
-                                    <SelectTrigger className="w-1/2 border-0 focus:ring-0">
-                                        <SelectValue placeholder="School Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="est">2019-2020</SelectItem>
-                                        <SelectItem value="cst">2023-2024</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Third Year</TableCell>
-                                <Select>
-                                    <SelectTrigger className="w-1/2 border-0 focus:ring-0">
-                                        <SelectValue placeholder="School Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="est">2019-2020</SelectItem>
-                                        <SelectItem value="cst">2023-2024</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Fourth Year</TableCell>
-                                <Select>
-                                    <SelectTrigger className="w-1/2 border-0 focus:ring-0">
-                                        <SelectValue placeholder="School Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="est">2019-2020</SelectItem>
-                                        <SelectItem value="cst">2023-2024</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                    {gettingSchoolYear ? (
+                        <div className='space-y-1'>
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    ) : (
+                        <div className='space-y-2'>
+                            {yearLevels.map((year, index) => (
+                                <div key={index} className="flex items-center justify-between border rounded-[0.3] px-2">
+                                    <span className="font-medium">{year}</span>
+                                    <Select name={String(index + 1)} value={activeCurriculums[String(index + 1)]} onValueChange={(value) => setActiveCurr(String(index + 1), value)}>
+                                        <SelectTrigger className="border-0 focus:ring-0 w-32">
+                                            <SelectValue placeholder="School Year" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {courseCurriculums.map(currs => (
+                                                <SelectItem key={currs.id} value={currs.id}>
+                                                    {currs.school_year_start} - {currs.school_year_end}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            ))}
+                        </div>
+                    )
+                    }
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setCurrActiveOpen(false)}>Done</AlertDialogCancel>
                     </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                </AlertDialogContent >
+            </AlertDialog >
         </>
     );
 }

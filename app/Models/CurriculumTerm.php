@@ -14,6 +14,7 @@ class CurriculumTerm extends Model
         'curriculum_id',
         'year_level_id',
         'semester_id',
+        'active',
     ];
 
     protected $hidden = [

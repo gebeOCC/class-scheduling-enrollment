@@ -8,7 +8,6 @@ use App\Models\Curriculum;
 use App\Models\CurriculumTerm;
 use App\Models\Faculty;
 use App\Models\YearLevel;
-use Illuminate\Container\Attributes\Auth;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,5 +73,45 @@ class CurriculumController extends Controller
             'year_level_id' => $request->year_level_id,
             'curriculum_id' => $request->curr_id,
         ]);
+    }
+
+    public function getCourseActiveCurriculum(Request $request)
+    {
+        $activeCurrs = YearLevel::select(
+            'year_level.year_level',
+            DB::raw('MAX(curriculum.id) as curriculum_id') // Get latest curriculum ID per year level
+        )
+            ->leftJoin('curriculum_term', function ($join) {
+                $join->on('curriculum_term.year_level_id', '=', 'year_level.id')
+                    ->where('curriculum_term.active', 1);
+            })
+            ->leftJoin('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
+            ->where(function ($query) use ($request) {
+                $query->where('curriculum.course_id', '=', $request->courseId)
+                    ->orWhereNull('curriculum.course_id'); // Include year levels without curriculum terms
+            })
+            ->groupBy('year_level.id', 'year_level.year_level') // Group by year level
+            ->pluck('curriculum_id', 'year_level.year_level'); // Converts result to key-value format
+
+        $curriculums = Curriculum::where('course_id', '=', $request->courseId)
+            ->get();
+
+        return response([
+            'active_currs' => $activeCurrs,
+            'curriculums' => $curriculums,
+        ]);
+    }
+
+    public function setCurriculumTermActive(Request $request)
+    {
+        CurriculumTerm::where('year_level_id', '=', $request->yearLevel)
+            ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
+            ->where('curriculum.course_id', '=', $request->courseId)
+            ->update(['active' => 0]);
+
+        CurriculumTerm::where('year_level_id', '=', $request->yearLevel)
+            ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
+            ->where('curriculum.id', '=', $request->curriculumId)
+            ->update(['active' => 1]);
     }
 }

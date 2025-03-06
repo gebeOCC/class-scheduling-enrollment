@@ -35,6 +35,11 @@ class User extends Authenticatable
         return $this->hasOne(Faculty::class, 'faculty_id');
     }
 
+    public function InstructorInfo()
+    {
+        return $this->hasOne(UserInformation::class, 'user_id');
+    }
+
     public function Student()
     {
         return $this->hasOne(Student::class, 'student_id');

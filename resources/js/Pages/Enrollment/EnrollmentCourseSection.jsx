@@ -36,7 +36,7 @@ import PreLoader from "@/Components/preloader/PreLoader";
 import { Separator } from "@/components/ui/separator"
 
 export default function EnrollmentCourseSection() {
-    const { courseId, error } = usePage().props;
+    const { courseId, error, course } = usePage().props;
     const user = usePage().props.auth.user;
 
     const [yearLevels, setYearLevels] = useState([]);
@@ -98,13 +98,21 @@ export default function EnrollmentCourseSection() {
 
         post(route('add.new.section'), {
             onSuccess: () => {
-                reset()
-                setIsDialogOpen(false)
+                reset();
+                setIsDialogOpen(false);
                 toast({
                     description: "Section added successfully.",
                     variant: "success",
-                })
-                getEnrollmentCourseSection()
+                });
+                getEnrollmentCourseSection();
+            },
+            onError: (errors) => {
+                if (errors.curriculum_id) {
+                    toast({
+                        description: errors.curriculum_id,
+                        variant: "destructive",
+                    });
+                }
             },
             preserveScroll: true,
         });
@@ -124,6 +132,11 @@ export default function EnrollmentCourseSection() {
         getEnrollmentCourseSection()
     }, [])
 
+    const closeAddingSectionDialog = () => {
+        setIsDialogOpen(false)
+        clearErrors()
+    }
+
     if (fetching) return <PreLoader title="Sections" />
 
     if (error) return
@@ -131,6 +144,7 @@ export default function EnrollmentCourseSection() {
     return (
         <>
             <Head title="Sections" />
+            <h1 className="text-4xl mb-4">{course.course_name}</h1>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {yearLevels && yearLevels.length > 0 ? (
                     yearLevels.map((yearLevel) => (
@@ -177,23 +191,20 @@ export default function EnrollmentCourseSection() {
                                                 <TableCell className="text-right">
                                                     <Link href={route('enrollment.view.class', {
                                                         id: courseId,
-                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-'),
-                                                        section: section.section
-                                                    })}>
+                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                    }) + `?section=${section.section}`}>
                                                         <Button className="text-purple-500" variant="link">Class</Button>
                                                     </Link>
                                                     <Link href={route('enrollment.view.students', {
                                                         id: courseId,
-                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-'),
-                                                        section: section.section
-                                                    })}>
+                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                    }) + `?section=${section.section}`}>
                                                         <Button className="text-green-500" variant="link">Students</Button>
                                                     </Link>
                                                     <Link href={route('enrollment.view.enroll-student', {
                                                         id: courseId,
-                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-'),
-                                                        section: section.section
-                                                    })}>
+                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                    }) + `?section=${section.section}`}>
                                                         <Button className="text-blue-500 hidden sm:inline" variant="link">Enroll Student</Button>
                                                     </Link>
                                                 </TableCell>
@@ -236,14 +247,16 @@ export default function EnrollmentCourseSection() {
                                 placeholder="Max students"
                             />
                             {errors.max_students && <p className="text-red-500">{errors.max_students}</p>}
-                        </div>
+                        </div>{errors.curriculum_id && (
+                            <div className="text-red-500">{errors.curriculum_id}</div>
+                        )}
                         <DialogFooter>
                             {/* Cancel button explicitly set to type="button" so it's not triggered on Enter */}
                             <Button
                                 type="button"
                                 disabled={processing}
                                 variant="outline"
-                                onClick={() => setIsDialogOpen(false)}>
+                                onClick={closeAddingSectionDialog}>
                                 Cancel
                             </Button>
                             {/* Submit button comes first, so Enter triggers this instead of Cancel */}
