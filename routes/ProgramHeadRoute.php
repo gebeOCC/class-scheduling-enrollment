@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
 use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
+use App\Http\Controllers\Instructors\InstructorsController;
+use App\Http\Controllers\Room\RoomController;
 
 Route::middleware(['auth', 'program_head'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -21,6 +23,9 @@ Route::middleware(['auth', 'program_head'])->group(function () {
 
     Route::post('/api/addSemester', [CurriculumController::class, 'addSemester'])->name('add.semester');
 
+    Route::post('/api/get-own-department-rooms', [RoomController::class, 'getOwnDepartmentRooms'])->name('get.own.department.rooms');
+    Route::post('/api/get-instructors', [InstructorsController::class, 'getInstructors'])->name('get.instructors');
+
     Route::middleware(['EnrollmentPrepOngoing'])->group(function () {
         Route::get('/enrollment/{id}', [EnrollmentCourseSectionController::class, 'view'])->name('enrollment.view');
         Route::post('/enrollment/{id}', [EnrollmentCourseSectionController::class, 'getEnrollmentCourseSections'])->name('get.enrollment.course.section');
@@ -28,7 +33,7 @@ Route::middleware(['auth', 'program_head'])->group(function () {
 
         Route::post('/api/enrollment/get-classes', [EnrollmentClassSchedulingController::class, 'enrollmentGetClasses'])->name('enrollment.get.classes');
         Route::get('/enrollment/{id}/class/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewClass'])->name('enrollment.view.class');
-        
+
         Route::get('/enrollment/{id}/students/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewStudents'])->name('enrollment.view.students');
 
         Route::get('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'enrollStudent'])->name('enrollment.view.enroll-student');

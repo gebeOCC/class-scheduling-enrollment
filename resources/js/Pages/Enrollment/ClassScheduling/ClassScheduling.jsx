@@ -22,6 +22,8 @@ import {
     Pencil,
     Trash,
     Megaphone,
+    ChevronsUpDown,
+    Check,
 } from 'lucide-react';
 import axios from 'axios';
 import PreLoader from '@/Components/preloader/PreLoader';
@@ -34,6 +36,14 @@ import { Label } from '@/Components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
 import { cn } from '@/lib/utils';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -70,6 +80,29 @@ const hours = [
     { value: '17', hour: '5' }
 ];
 
+const frameworks = [
+    {
+        value: "next.js",
+        label: "Next.js",
+    },
+    {
+        value: "sveltekit",
+        label: "SvelteKit",
+    },
+    {
+        value: "nuxt.js",
+        label: "Nuxt.js",
+    },
+    {
+        value: "remix",
+        label: "Remix",
+    },
+    {
+        value: "astro",
+        label: "Astro",
+    },
+]
+
 export default function ClassScheduling() {
     const [fetching, setFetching] = useState(true);
     const { yearSectionId, courseName, yearlevel, section } = usePage().props;
@@ -80,6 +113,9 @@ export default function ClassScheduling() {
     const [editing, setEditing] = useState(false);
     const [editingSecondSchedule, setEditingSecondSchedule] = useState(false);
 
+    const [open, setOpen] = React.useState(false)
+    const [value, setValue] = React.useState("")
+
     const [dayType, setDayType] = useState('Single');
     const [endTImeHour, setendTImeHour] = useState('Single');
     const [meridiem, setMeridiem] = useState('AM');
@@ -87,6 +123,8 @@ export default function ClassScheduling() {
 
     const [classes, setClasses] = useState([])
     const [subjectEditingInfo, setSubjectEditingInfo] = useState([])
+    const [rooms, setRooms] = useState([])
+    const [instructors, setInstructors] = useState([])
 
     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         id: 0,
@@ -126,6 +164,8 @@ export default function ClassScheduling() {
             start_time: classData.start_time || "",
             end_time: classData.end_time || "",
             id: classData.id || "",
+            room_id: classData.room_id,
+            faculty_id: classData.faculty_id,
         }));
 
         const [hourValue,] = classData.start_time.split(":");
@@ -149,6 +189,8 @@ export default function ClassScheduling() {
             start_time: classData.secondary_schedule.start_time || "",
             end_time: classData.secondary_schedule.end_time || "",
             id: classData.secondary_schedule.id || "",
+            room_id: classData.secondary_schedule.room_id,
+            faculty_id: classData.faculty_id,
         }));
 
         const [hourValue,] = classData.secondary_schedule.start_time.split(":");
@@ -169,6 +211,8 @@ export default function ClassScheduling() {
     }
 
     const editSchedule = (classData, type) => {
+        getDepartmentRooms()
+        getInstructors()
         setEditing(true);
         console.log(classData)
         switch (type) {
@@ -269,7 +313,7 @@ export default function ClassScheduling() {
     }
 
     const handleSubmit = async () => {
-
+        // TO DO
     }
 
     const cancelEditing = () => {
@@ -319,12 +363,29 @@ export default function ClassScheduling() {
         setData('end_time', `${String(newHour).padStart(2, '0')}:${min}`);
     };
 
+    const getDepartmentRooms = async () => {
+        if (rooms.length > 0) return
+        await axios.post('/api/get-own-department-rooms')
+            .then(response => {
+                setRooms(response.data)
+            })
+    }
+
+    const getInstructors = async () => {
+        if (instructors.length > 0) return
+        await axios.post('/api/get-instructors')
+            .then(response => {
+                console.log(response.data)
+                setInstructors(response.data)
+            })
+    }
+
     if (fetching) return <PreLoader title="Class" />
 
     return (
         <div className='space-y-4'>
             <Head title="Class" />
-            <Card className="">
+            <Card>
                 <CardHeader className="px-6 mt-4">
                     <CardTitle className="text-4xl font-bold" >{courseName} - {yearlevel}{section}</CardTitle>
                 </CardHeader>
@@ -432,6 +493,7 @@ export default function ClassScheduling() {
                                                 <Label htmlFor="text-end">Day</Label>
                                                 {schoolYear.semester_id == 3 &&
                                                     <RadioGroup
+                                                        disabled={data.day == 'TBA'}
                                                         value={dayType}
                                                         defaultValue={dayType}
                                                         onValueChange={(value) => changeDayType(value)}
@@ -569,8 +631,8 @@ export default function ClassScheduling() {
                                             </TooltipProvider>
                                         </div>
                                     </div>
-                                    <Label>Time</Label>
 
+                                    <Label>Time</Label>
                                     <div className='flex gap-2'>
                                         <div className='flex gap-1 w-full items-center'>
                                             {(() => {
@@ -639,39 +701,34 @@ export default function ClassScheduling() {
                                                 )
                                             })()}
                                             <span className="text-2xl">-</span>
-                                            {(() => {
-
-                                                return (
-                                                    <Select
+                                            <Select
+                                                disabled={data.start_time == 'TBA'}
+                                                value={classHour}
+                                                onValueChange={(value) => classHourChange(value)}>
+                                                <SelectTrigger className='w-full'>
+                                                    <Input
                                                         disabled={data.start_time == 'TBA'}
-                                                        value={classHour}
-                                                        onValueChange={(value) => classHourChange(value)}>
-                                                        <SelectTrigger className='w-full'>
-                                                            <Input
-                                                                disabled={data.start_time == 'TBA'}
-                                                                label="End Time"
-                                                                type={data.start_time == 'TBA' ? 'text' : 'time'}
-                                                                readOnly={true}
-                                                                value={data.end_time}
-                                                                onChange={(e) => setData("end_time", e.target.value)}
-                                                                error={errors.end_time}
-                                                                className="border-none px-0 cursor-pointer"
-                                                            />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="2">
-                                                                2hrs
-                                                            </SelectItem>
-                                                            <SelectItem value="3">
-                                                                3hrs
-                                                            </SelectItem>
-                                                            <SelectItem value="5">
-                                                                5hrs
-                                                            </SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                )
-                                            })()}
+                                                        label="End Time"
+                                                        type={data.start_time == 'TBA' ? 'text' : 'time'}
+                                                        readOnly={true}
+                                                        value={data.end_time}
+                                                        onChange={(e) => setData("end_time", e.target.value)}
+                                                        error={errors.end_time}
+                                                        className="border-none px-0 cursor-pointer"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="2">
+                                                        2hrs
+                                                    </SelectItem>
+                                                    <SelectItem value="3">
+                                                        3hrs
+                                                    </SelectItem>
+                                                    <SelectItem value="5">
+                                                        5hrs
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <TooltipProvider>
                                             <Tooltip>
@@ -696,7 +753,133 @@ export default function ClassScheduling() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            <div className='w-full' />
+                            <Card className="w-full p-0">
+                                <CardHeader className="m-0 px-2 pt-2" >
+                                    <CardTitle className="text-xl">Assign</CardTitle>
+                                </CardHeader>
+                                <CardContent className="pb-4 px-2">
+                                    <Label>Room</Label>
+                                    <div className='flex gap-2'>
+                                        <Select
+                                            disabled={data.room_id == null}
+                                            value={data.room_id}
+                                            onValueChange={(value) => setData('room_id', value)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select room..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {rooms.map(room => (
+                                                    <SelectItem value={room.id}>
+                                                        {room.room_name}
+                                                    </SelectItem>
+                                                ))}
+                                                {data.room_id == null &&
+                                                    <SelectItem value={null}>
+                                                        TBA
+                                                    </SelectItem>
+                                                }
+                                            </SelectContent>
+                                        </Select>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Megaphone
+                                                        onClick={() => {
+                                                            if (data.room_id == null) {
+                                                                setData('room_id', '')
+                                                            } else {
+                                                                setData('room_id', null)
+                                                            }
+                                                        }}
+                                                        className={`self-center ${data.room_id == null && 'text-green-500'}  cursor-pointer`} />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="">
+                                                    <p> To Be Announce (TBA)</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
+                                    <Label>Instructor</Label>
+                                    <div className='flex gap-2'>
+                                        <Popover
+                                            open={open}
+                                            onOpenChange={setOpen}>
+                                            <PopoverTrigger disabled={data.faculty_id == null} asChild>
+                                                <Input
+                                                    placeholder="Select instructor..."
+                                                    readOnly={true}
+                                                    value={instructors === undefined ? "Loading..." :
+                                                        data.faculty_id
+                                                            ? formatFullName(instructors.find((instructor) => instructor.id === data.faculty_id) || {})
+                                                            : data.faculty_id == null ? "TBA" : "Select instructor..."
+                                                    }
+                                                    className='cursor-pointer text-start' />
+                                                {/* <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={open}
+                                                className="w-[200px] justify-between"
+                                            >
+
+                                                <ChevronsUpDown className="opacity-50" />
+                                            </Button> */}
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[200px] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Search instructor..." className="h-9 border-0 outline-none p-0" />
+                                                    <CommandList>
+                                                        <CommandEmpty>No instructor found.</CommandEmpty> {/* Now works properly */}
+                                                        <CommandGroup>
+                                                            {Array.isArray(instructors) &&
+                                                                instructors.map((instructor) => (
+                                                                    <CommandItem
+                                                                        key={instructor.id}
+                                                                        value={instructor.id}
+                                                                        onSelect={() => {
+                                                                            setData('faculty_id', instructor.id); // Update the main state
+                                                                            setOpen(false);
+                                                                        }}
+                                                                    >
+                                                                        {formatFullName(instructor)}
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "ml-auto",
+                                                                                data.faculty_id === instructor.id ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                    </CommandItem>
+                                                                ))}
+                                                            {data.faculty_id == null &&
+                                                                <CommandItem value={null} >
+                                                                    TBA
+                                                                </CommandItem>
+                                                            }
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Megaphone
+                                                        onClick={() => {
+                                                            if (data.faculty_id == null) {
+                                                                setData('faculty_id', '')
+                                                            } else {
+                                                                setData('faculty_id', null)
+                                                            }
+                                                        }}
+                                                        className={`self-center ${data.faculty_id == null && 'text-green-500'}  cursor-pointer`} />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="">
+                                                    <p> To Be Announce (TBA)</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
                         <Button onClick={cancelEditing} variant="secondary">
                             Cancel
