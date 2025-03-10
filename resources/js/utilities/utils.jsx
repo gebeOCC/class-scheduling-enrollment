@@ -51,7 +51,7 @@ export function convertAMPMTo24Hour(time) {
     return `${formattedHours}:${formattedMinutes}`;
 }
 
-// collect two schedules with start and end time (formatted in minutes), returns true if has conflict otherwise false 
+// collect two schedules with start and end time (formatted in minutes), returns true if has conflict otherwise false
 export function hasTimeConflict(start1, end1, start2, end2) {
     return !(end1 <= start2 || end2 <= start1);
 }
@@ -217,4 +217,14 @@ export function convertToRgba(hex, alpha) {
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export function identifyDayType(dayString) {
+    if (dayString.includes("-")) {
+        return "Consecutive"
+    }
+    if (dayString.includes(",")) {
+        return "Alternating"
+    }
+    return "Single"
 }
