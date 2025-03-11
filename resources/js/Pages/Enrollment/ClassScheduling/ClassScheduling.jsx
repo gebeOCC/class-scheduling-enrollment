@@ -45,6 +45,7 @@ import {
     CommandList,
 } from "@/components/ui/command"
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -104,6 +105,8 @@ const frameworks = [
 ]
 
 export default function ClassScheduling() {
+    const { toast } = useToast()
+
     const [fetching, setFetching] = useState(true);
     const { yearSectionId, courseName, yearlevel, section } = usePage().props;
     const { schoolYear } = usePage().props.auth;
@@ -157,6 +160,7 @@ export default function ClassScheduling() {
         identifyAndChangeDayType(classData.day)
         setData(prevData => ({
             ...prevData,
+            class_code: classData.class_code || "",
             subject_code: classData.subject?.subject_code || "",
             subject_id: classData.subject_id || 0,
             descriptive_title: classData.subject?.descriptive_title || "",
@@ -182,6 +186,7 @@ export default function ClassScheduling() {
 
         setData(prevData => ({
             ...prevData,
+            class_code: classData.class_code || "",
             subject_code: classData.subject?.subject_code || "",
             subject_id: classData.subject_id || 0,
             descriptive_title: classData.subject?.descriptive_title || "",
@@ -199,7 +204,6 @@ export default function ClassScheduling() {
             changeDayType('')
         }
         setSubjectEditingInfo(classData.subject)
-        console.log(classData.secondary_schedule.day)
     }
 
     const changeMeridiem = (hour) => {
@@ -214,7 +218,6 @@ export default function ClassScheduling() {
         getDepartmentRooms()
         getInstructors()
         setEditing(true);
-        console.log(classData)
         switch (type) {
             case 'main':
                 editMainSchedule(classData)
@@ -227,6 +230,8 @@ export default function ClassScheduling() {
         setTimeout(() => {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
         }, 100);
+
+        if (classData.subject.laboratory_hours) setClassHour('5')
     }
 
     const identifyAndChangeDayType = (day) => {
@@ -312,10 +317,6 @@ export default function ClassScheduling() {
         setDayType(type)
     }
 
-    const handleSubmit = async () => {
-        // TO DO
-    }
-
     const cancelEditing = () => {
         setEditing(false)
         setEditingSecondSchedule(false)
@@ -380,6 +381,58 @@ export default function ClassScheduling() {
             })
     }
 
+    const handleSubmit = () => {
+        clearErrors();
+
+        let errors = {};
+
+        if (data.faculty_id == '') errors.faculty_id = "Required";
+        if (data.room_id == '') errors.room_id = "Required";
+
+        if (Object.keys(errors).length > 0) {
+            setError(errors);
+            return;
+        }
+
+        if (editing && !editingSecondSchedule) {
+            submitMainSchedule()
+        } else if (editSecondSchedule) {
+            submitSecondSchedule()
+        }
+    };
+
+    const submitMainSchedule = async () => {
+        await post(route("enrollment.update.main.class", data), {
+            onSuccess: () => {
+                reset()
+                setEditing(false)
+                setEditingSecondSchedule(false)
+                toast({
+                    description: "Class updated successfully.",
+                    variant: "success",
+                })
+                getCLasses()
+            },
+            preserveScroll: true,
+        });
+    }
+
+    const submitSecondSchedule = async () => {
+        await post(route("enrollment.update.second.class", data), {
+            onSuccess: () => {
+                reset()
+                setEditing(false)
+                setEditingSecondSchedule(false)
+                toast({
+                    description: "Class updated successfully.",
+                    variant: "success",
+                })
+                getCLasses()
+            },
+            preserveScroll: true,
+        });
+    }
+
     if (fetching) return <PreLoader title="Class" />
 
     return (
@@ -439,7 +492,7 @@ export default function ClassScheduling() {
                                         {classInfo.secondary_schedule && (
                                             <TableRow className={`${isEditingSecondary ? 'bg-green-500 hover:bg-green-500' : ''}`}>
                                                 <TableCell>{classInfo.subject.subject_code}</TableCell>
-                                                <TableCell>{classInfo.subject.descriptive_title}</TableCell>
+                                                <TableCell>{classInfo.subject.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
                                                 <TableCell>{classInfo.secondary_schedule.day}</TableCell>
                                                 <TableCell>
                                                     {classInfo.secondary_schedule.start_time !== "TBA"
@@ -478,7 +531,7 @@ export default function ClassScheduling() {
             {editing &&
                 <Card ref={bottomRef}>
                     <CardHeader>
-                        <CardTitle className="text-2xl" onClick={() => console.log(data)}>{data.subject_code} - {data.descriptive_title} </CardTitle>
+                        <CardTitle className="text-2xl">{data.subject_code} - {data.descriptive_title} <span className='text-lg italic'>{editingSecondSchedule && '(2nd schedule)'}</span></CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         <div className="flex gap-4">
@@ -763,8 +816,11 @@ export default function ClassScheduling() {
                                         <Select
                                             disabled={data.room_id == null}
                                             value={data.room_id}
-                                            onValueChange={(value) => setData('room_id', value)}>
-                                            <SelectTrigger>
+                                            onValueChange={(value) => {
+                                                setData('room_id', value)
+                                                clearErrors('room_id')
+                                            }}>
+                                            <SelectTrigger className={`${errors.room_id && 'border-red-500'}`}>
                                                 <SelectValue placeholder="Select room..." />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -799,36 +855,26 @@ export default function ClassScheduling() {
                                             </Tooltip>
                                         </TooltipProvider>
                                     </div>
-                                    <Label>Instructor</Label>
+
+                                    <Label>Instructor <span className='text-xs font-normal italic'>(unable to edit instructor when editing 2nd schedule)</span></Label>
                                     <div className='flex gap-2'>
-                                        <Popover
-                                            open={open}
-                                            onOpenChange={setOpen}>
-                                            <PopoverTrigger disabled={data.faculty_id == null} asChild>
+                                        <Popover open={open} onOpenChange={setOpen}>
+                                            <PopoverTrigger disabled={data.faculty_id == null || editingSecondSchedule} asChild>
                                                 <Input
                                                     placeholder="Select instructor..."
-                                                    readOnly={true}
+                                                    readOnly
                                                     value={instructors === undefined ? "Loading..." :
                                                         data.faculty_id
                                                             ? formatFullName(instructors.find((instructor) => instructor.id === data.faculty_id) || {})
-                                                            : data.faculty_id == null ? "TBA" : "Select instructor..."
-                                                    }
-                                                    className='cursor-pointer text-start' />
-                                                {/* <Button
-                                                variant="outline"
-                                                role="combobox"
-                                                aria-expanded={open}
-                                                className="w-[200px] justify-between"
-                                            >
-
-                                                <ChevronsUpDown className="opacity-50" />
-                                            </Button> */}
+                                                            : data.faculty_id == null ? "TBA" : "Select instructor..."}
+                                                    className={`cursor-pointer text-start border ${errors.faculty_id && 'border-red-500'}`}
+                                                />
                                             </PopoverTrigger>
                                             <PopoverContent className="w-[200px] p-0">
                                                 <Command>
                                                     <CommandInput placeholder="Search instructor..." className="h-9 border-0 outline-none p-0" />
                                                     <CommandList>
-                                                        <CommandEmpty>No instructor found.</CommandEmpty> {/* Now works properly */}
+                                                        <CommandEmpty>No instructor found.</CommandEmpty>
                                                         <CommandGroup>
                                                             {Array.isArray(instructors) &&
                                                                 instructors.map((instructor) => (
@@ -836,7 +882,8 @@ export default function ClassScheduling() {
                                                                         key={instructor.id}
                                                                         value={instructor.id}
                                                                         onSelect={() => {
-                                                                            setData('faculty_id', instructor.id); // Update the main state
+                                                                            setData('faculty_id', instructor.id);
+                                                                            clearErrors('faculty_id')
                                                                             setOpen(false);
                                                                         }}
                                                                     >
@@ -850,7 +897,7 @@ export default function ClassScheduling() {
                                                                     </CommandItem>
                                                                 ))}
                                                             {data.faculty_id == null &&
-                                                                <CommandItem value={null} >
+                                                                <CommandItem value={null} onSelect={() => setData('faculty_id', null)}>
                                                                     TBA
                                                                 </CommandItem>
                                                             }
@@ -859,11 +906,13 @@ export default function ClassScheduling() {
                                                 </Command>
                                             </PopoverContent>
                                         </Popover>
+
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Megaphone
                                                         onClick={() => {
+                                                            if (editingSecondSchedule) return
                                                             if (data.faculty_id == null) {
                                                                 setData('faculty_id', '')
                                                             } else {
@@ -881,10 +930,19 @@ export default function ClassScheduling() {
                                 </CardContent>
                             </Card>
                         </div>
-                        <Button onClick={cancelEditing} variant="secondary">
+                        <Button
+                            onClick={() => {
+                                cancelEditing()
+                                clearErrors()
+                            }}
+                            variant="secondary">
                             Cancel
                         </Button>
-                        <Button className="ml-2" type="submit" disabled={processing}>
+                        <Button
+                            onClick={handleSubmit}
+                            className="ml-2"
+                            type="submit"
+                            disabled={processing}>
                             {processing ? "Submitting..." : "Submit"}
                         </Button>
                     </CardContent>

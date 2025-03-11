@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Enrollment\ClassScheduling;
 
 use App\Http\Controllers\Controller;
 use App\Models\SchoolYear;
+use App\Models\SubjectSecondarySchedule;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Carbon\Carbon;
@@ -39,6 +40,42 @@ class EnrollmentClassSchedulingController extends Controller
 
         return response([
             'classes' => $classes
+        ]);
+    }
+
+    public function enrollmentUpdateMainClass(Request $request)
+    {
+        // Find the record by ID
+        $class = YearSectionSubjects::find($request->id);
+
+        // Check if class exists
+        if (!$class) {
+            return response()->json(['message' => 'Class not found'], 404);
+        }
+
+        // Update the record
+        $class->update([
+            'day' => $request->day,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'room_id' => $request->room_id,
+            'faculty_id' => $request->faculty_id,
+        ]);
+    }
+
+    public function enrollmentUpdateSecondClass(Request $request){
+        $class = SubjectSecondarySchedule::find($request->id);
+        // Check if class exists
+        if (!$class) {
+            return response()->json(['message' => 'Class not found'], 404);
+        }
+
+        // Update the record
+        $class->update([
+            'day' => $request->day,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'room_id' => $request->room_id,
         ]);
     }
 
