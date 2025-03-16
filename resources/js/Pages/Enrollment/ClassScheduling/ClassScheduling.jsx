@@ -22,7 +22,6 @@ import {
     Pencil,
     Trash,
     Megaphone,
-    ChevronsUpDown,
     Check,
 } from 'lucide-react';
 import axios from 'axios';
@@ -46,6 +45,7 @@ import {
 } from "@/components/ui/command"
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { detectMainScheduleConflict } from './ConflictUtilities';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -81,29 +81,6 @@ const hours = [
     { value: '17', hour: '5' }
 ];
 
-const frameworks = [
-    {
-        value: "next.js",
-        label: "Next.js",
-    },
-    {
-        value: "sveltekit",
-        label: "SvelteKit",
-    },
-    {
-        value: "nuxt.js",
-        label: "Nuxt.js",
-    },
-    {
-        value: "remix",
-        label: "Remix",
-    },
-    {
-        value: "astro",
-        label: "Astro",
-    },
-]
-
 export default function ClassScheduling() {
     const { toast } = useToast()
 
@@ -128,6 +105,8 @@ export default function ClassScheduling() {
     const [subjectEditingInfo, setSubjectEditingInfo] = useState([])
     const [rooms, setRooms] = useState([])
     const [instructors, setInstructors] = useState([])
+    const [mainScheduleConflictList, setMainScheduleConflictList] = useState([])
+    const [secondScheduleConflictList, setSecondScheduleConflictList] = useState([])
 
     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         id: 0,
@@ -157,7 +136,17 @@ export default function ClassScheduling() {
     }
 
     const editMainSchedule = (classData) => {
+        if (classData.day != 'TBA' || classData.start_time != 'TBA') {
+            collectConflictSchedules({
+                start_time: classData.start_time,
+                end_time: classData.end_time,
+                day: classData.day,
+                id: classData.id,
+            })
+        }
+
         identifyAndChangeDayType(classData.day)
+
         setData(prevData => ({
             ...prevData,
             class_code: classData.class_code || "",
@@ -178,9 +167,19 @@ export default function ClassScheduling() {
             changeDayType('')
         }
         setSubjectEditingInfo(classData.subject)
+
     };
 
     const editSecondSchedule = (classData) => {
+        if (classData.day != 'TBA' || classData.start_time != 'TBA') {
+            collectConflictSchedules({
+                start_time: classData.secondary_schedule.start_time,
+                end_time: classData.secondary_schedule.end_time,
+                day: classData.secondary_schedule.day,
+                id: classData.secondary_schedule.id,
+            })
+        }
+
         identifyAndChangeDayType(classData.secondary_schedule.day)
         setEditingSecondSchedule(true)
 
@@ -207,7 +206,7 @@ export default function ClassScheduling() {
     }
 
     const changeMeridiem = (hour) => {
-        if (hour > 12) {
+        if (hour >= 12) {
             setMeridiem('PM')
         } else {
             setMeridiem('AM')
@@ -323,36 +322,98 @@ export default function ClassScheduling() {
         reset()
     }
 
+    const collectConflictSchedules = (editingSchedule) => {
+        if (editingSchedule.day == 'TBA' || editingSchedule.start_time == 'TBA') return
+
+        const mainSchedConflicts = [];
+        const secondSchedConflicts = [];
+
+        classes.forEach((cls) => {
+            if (detectMainScheduleConflict(editingSchedule, cls) && cls.id != editingSchedule.id) {
+                mainSchedConflicts.push(cls.id);
+            }
+
+            if (cls.secondary_schedule && cls.secondary_schedule.id !== editingSchedule.id) {
+                const hasConflict = detectMainScheduleConflict(editingSchedule, cls.secondary_schedule);
+                // console.log(cls.secondary_schedule.id)
+                if (hasConflict) {
+                    secondSchedConflicts.push(cls.secondary_schedule.id);
+                    // console.log(cls.secondary_schedule.id)
+                    // console.log('has conflict')
+                }
+            }
+        });
+        setMainScheduleConflictList(mainSchedConflicts)
+        setSecondScheduleConflictList(secondSchedConflicts)
+        if(mainSchedConflicts.length > 0 || secondSchedConflicts.length > 0) {
+            const totalConflicts = mainSchedConflicts.length + secondSchedConflicts.length
+            toast({
+                description: `Found ${totalConflicts} conflict!`,
+                variant: "destructive",
+            })
+        }
+    };
+
     const startTimeChange = (value, type) => {
         if (!value) return
-        const [hour, min] = data.start_time.split(':');
+        const [sHour, sMin] = data.start_time.split(':');
         const [eHour, eMin] = data.end_time.split(':');
+        let startTime
+        let endTime
+
         switch (type) {
             case 'hour':
-                setData('start_time', `${value}:${min}`);
+                setData('start_time', `${value}:${sMin}`);
                 setData('end_time', `${String(Number(value) + Number(classHour)).padStart(2, '0')}:${eMin}`);
+                startTime = `${value}:${sMin}`
+                endTime = `${String(Number(value) + Number(classHour)).padStart(2, '0')}:${eMin}`
                 break;
-            default:
-                setData('start_time', `${hour}:${value}`);
+            case 'min':
+                setData('start_time', `${sHour}:${value}`);
                 setData('end_time', `${eHour}:${value}`);
+                startTime = `${sHour}:${value}`
+                endTime = `${eHour}:${value}`
+                break;
+            case 'meridiem':
+                const { start, end } = meridiemChange(value);
+                startTime = start
+                endTime = end
                 break;
         }
+
+        if (data.day == 'TBA' || startTime == 'TBA') return
+
+        const editingSchedule = {
+            start_time: startTime,
+            end_time: endTime,
+            day: data.day,
+            id: data.id,
+        }
+        collectConflictSchedules(editingSchedule)
     };
 
     const meridiemChange = (value) => {
         if (!value) return
         const [, min] = data.start_time.split(':');
+        let start
+        let end
+
         switch (value) {
             case 'AM':
                 setData('start_time', `07:${min}`);
                 setData('end_time', `${String(Number(7) + Number(classHour)).padStart(2, '0')}:${min}`);
+                start = `07:${min}`
+                end = `${String(Number(7) + Number(classHour)).padStart(2, '0')}:${min}`
                 break;
             default:
                 setData('start_time', `12:${min}`);
                 setData('end_time', `${String(Number(12) + Number(classHour)).padStart(2, '0')}:${min}`);
+                start = `12:${min}`
+                end = `${String(Number(12) + Number(classHour)).padStart(2, '0')}:${min}`
                 break;
         }
         setMeridiem(value)
+        return { start, end };
     }
 
     const classHourChange = (value) => {
@@ -360,8 +421,17 @@ export default function ClassScheduling() {
 
         const [hour, min] = data.start_time.split(':');
         const newHour = Number(hour) + Number(value);
+        const newEndTime = `${String(newHour).padStart(2, '0')}:${min}`
 
-        setData('end_time', `${String(newHour).padStart(2, '0')}:${min}`);
+        setData('end_time', newEndTime);
+
+        const editingSchedule = {
+            start_time: data.start_time,
+            end_time: newEndTime,
+            day: data.day,
+            id: data.id,
+        }
+        collectConflictSchedules(editingSchedule)
     };
 
     const getDepartmentRooms = async () => {
@@ -412,6 +482,8 @@ export default function ClassScheduling() {
                     variant: "success",
                 })
                 getCLasses()
+                setMainScheduleConflictList([])
+                setSecondScheduleConflictList([])
             },
             preserveScroll: true,
         });
@@ -428,6 +500,8 @@ export default function ClassScheduling() {
                     variant: "success",
                 })
                 getCLasses()
+                setMainScheduleConflictList([])
+                setSecondScheduleConflictList([])
             },
             preserveScroll: true,
         });
@@ -449,7 +523,7 @@ export default function ClassScheduling() {
                                 {/* <TableHead>Class Code</TableHead> */}
                                 <TableHead className="w-28">Subject Code</TableHead>
                                 <TableHead>Descriptive Title</TableHead>
-                                <TableHead className="w-12">Day</TableHead>
+                                <TableHead className="w-36">Day</TableHead>
                                 <TableHead className="w-40">Time</TableHead>
                                 <TableHead className="w-14">Room</TableHead>
                                 <TableHead className="w-32">Instructor</TableHead>
@@ -463,9 +537,9 @@ export default function ClassScheduling() {
 
                                 return (
                                     <React.Fragment key={classInfo.id}>
-                                        <TableRow className={`${isEditing ? 'bg-green-500 hover:bg-green-500' : ''}`}>
+                                        <TableRow className={`${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(classInfo.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
                                             <TableCell>{classInfo.subject.subject_code}</TableCell>
-                                            <TableCell>{classInfo.subject.descriptive_title}</TableCell>
+                                            <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title}</TableCell>
                                             <TableCell>{classInfo.day}</TableCell>
                                             <TableCell>
                                                 {classInfo.start_time !== "TBA"
@@ -490,9 +564,9 @@ export default function ClassScheduling() {
                                         </TableRow>
 
                                         {classInfo.secondary_schedule && (
-                                            <TableRow className={`${isEditingSecondary ? 'bg-green-500 hover:bg-green-500' : ''}`}>
+                                            <TableRow className={`${isEditingSecondary ? 'bg-green-500 hover:bg-green-500' : ''} ${secondScheduleConflictList.includes(classInfo.secondary_schedule.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
                                                 <TableCell>{classInfo.subject.subject_code}</TableCell>
-                                                <TableCell>{classInfo.subject.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
+                                                <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
                                                 <TableCell>{classInfo.secondary_schedule.day}</TableCell>
                                                 <TableCell>
                                                     {classInfo.secondary_schedule.start_time !== "TBA"
@@ -570,7 +644,17 @@ export default function ClassScheduling() {
                                         </div>
                                         <div className='flex gap-2'>
                                             {(dayType === "Single" && data.day != "TBA") && (
-                                                <Select value={data.day} onValueChange={(value) => setData("day", value)}>
+                                                <Select
+                                                    value={data.day}
+                                                    onValueChange={(value) => {
+                                                        setData("day", value)
+                                                        collectConflictSchedules({
+                                                            start_time: data.start_time,
+                                                            end_time: data.end_time,
+                                                            day: value,
+                                                            id: data.id,
+                                                        })
+                                                    }}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select a day" />
                                                     </SelectTrigger>
@@ -632,11 +716,15 @@ export default function ClassScheduling() {
                                                         .join(","); // Join without spaces
 
                                                     setData('day', daysValue)
+                                                    console.log(daysValue)
                                                 }
 
                                                 return (
                                                     <ToggleGroup
-                                                        onValueChange={(value) => dayChangeAlternating(value)}
+                                                        onValueChange={(value) => {
+                                                            if (value.length <= 1) return
+                                                            dayChangeAlternating(value)
+                                                        }}
                                                         value={data.day.split(',').map(day => day.trim())}
                                                         type="multiple"
                                                         variant="outline"
@@ -672,7 +760,19 @@ export default function ClassScheduling() {
                                                     <TooltipTrigger asChild>
                                                         <Megaphone
                                                             onClick={() => {
-                                                                data.day == 'TBA' ? setData('day', 'Monday') : setData('day', 'TBA')
+                                                                if (data.day == 'TBA') {
+                                                                    setData('day', 'Monday')
+                                                                    collectConflictSchedules({
+                                                                        start_time: data.start_time,
+                                                                        end_time: data.end_time,
+                                                                        day: 'Monday',
+                                                                        id: data.id,
+                                                                    })
+                                                                } else {
+                                                                    setData('day', 'TBA')
+                                                                    setMainScheduleConflictList([])
+                                                                    setSecondScheduleConflictList([])
+                                                                }
                                                                 setDayType('Single')
                                                             }}
                                                             className={`self-center ${data.day == 'TBA' && 'text-green-500'} cursor-pointer`} />
@@ -712,8 +812,7 @@ export default function ClassScheduling() {
                                                                 className="flex flex-col w-min"
                                                                 value={hourValue} onValueChange={(value) => startTimeChange(value, 'hour')}
                                                             >
-                                                                {hours
-                                                                    .filter(hour => (meridiem === 'PM' ? hour.value >= 12 : hour.value < 12)) // Filter correctly
+                                                                {hours.filter(hour => (meridiem === 'PM' ? hour.value >= 12 : hour.value < 12)) // Filter correctly
                                                                     .map(hour => (
                                                                         <ToggleGroupItem
                                                                             className="data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]"
@@ -741,7 +840,7 @@ export default function ClassScheduling() {
                                                                 variant="outline"
                                                                 className="flex flex-col w-min justify-start"
                                                                 value={meridiem}
-                                                                onValueChange={(value) => meridiemChange(value)}>
+                                                                onValueChange={(value) => startTimeChange(value, 'meridiem')}>
                                                                 <ToggleGroupItem className="data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]" value='AM'>
                                                                     AM
                                                                 </ToggleGroupItem>
@@ -791,9 +890,17 @@ export default function ClassScheduling() {
                                                             if (data.start_time == 'TBA') {
                                                                 setData('start_time', '07:30')
                                                                 setData('end_time', `${7 + Number(classHour)}:30`)
+                                                                collectConflictSchedules({
+                                                                    start_time: '07:30',
+                                                                    end_time: `${7 + Number(classHour)}:30`,
+                                                                    day: data.day,
+                                                                    id: data.id,
+                                                                })
                                                             } else {
                                                                 setData('start_time', 'TBA')
                                                                 setData('end_time', 'TBA')
+                                                                setMainScheduleConflictList([])
+                                                                setSecondScheduleConflictList([])
                                                             }
                                                         }}
                                                         className={`self-center ${data.start_time == 'TBA' && 'text-green-500'}  cursor-pointer`} />
@@ -825,7 +932,7 @@ export default function ClassScheduling() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {rooms.map(room => (
-                                                    <SelectItem value={room.id}>
+                                                    <SelectItem key={room.id} value={room.id}>
                                                         {room.room_name}
                                                     </SelectItem>
                                                 ))}
@@ -845,6 +952,7 @@ export default function ClassScheduling() {
                                                                 setData('room_id', '')
                                                             } else {
                                                                 setData('room_id', null)
+                                                                clearErrors('room_id')
                                                             }
                                                         }}
                                                         className={`self-center ${data.room_id == null && 'text-green-500'}  cursor-pointer`} />
@@ -856,7 +964,7 @@ export default function ClassScheduling() {
                                         </TooltipProvider>
                                     </div>
 
-                                    <Label>Instructor <span className='text-xs font-normal italic'>(unable to edit instructor when editing 2nd schedule)</span></Label>
+                                    <Label>Instructor {editingSecondSchedule && <span className='text-xs font-normal italic'>(unable to edit instructor when editing 2nd schedule)</span>}</Label>
                                     <div className='flex gap-2'>
                                         <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger disabled={data.faculty_id == null || editingSecondSchedule} asChild>
@@ -917,9 +1025,11 @@ export default function ClassScheduling() {
                                                                 setData('faculty_id', '')
                                                             } else {
                                                                 setData('faculty_id', null)
+                                                                clearErrors('faculty_id')
                                                             }
                                                         }}
-                                                        className={`self-center ${data.faculty_id == null && 'text-green-500'}  cursor-pointer`} />
+                                                        className={`self-center ${data.faculty_id == null && 'text-green-500'}  cursor-pointer`}
+                                                    />
                                                 </TooltipTrigger>
                                                 <TooltipContent className="">
                                                     <p> To Be Announce (TBA)</p>
@@ -934,6 +1044,8 @@ export default function ClassScheduling() {
                             onClick={() => {
                                 cancelEditing()
                                 clearErrors()
+                                setMainScheduleConflictList([])
+                                setSecondScheduleConflictList([])
                             }}
                             variant="secondary">
                             Cancel

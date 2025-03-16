@@ -56,6 +56,16 @@ export function hasTimeConflict(start1, end1, start2, end2) {
     return !(end1 <= start2 || end2 <= start1);
 }
 
+// collect two schedules with start and end time (24 hours), returns true if has conflict otherwise false
+export function hasTimeConflict24Hours(start1, end1, start2, end2) {
+    const start1Min = convert24HourTimeToMinutes(start1);
+    const end1Min = convert24HourTimeToMinutes(end1);
+    const start2Min = convert24HourTimeToMinutes(start2);
+    const end2Min = convert24HourTimeToMinutes(end2);
+
+    return !(end1Min <= start2Min || end2Min <= start1Min);
+}
+
 // Capitalize the first letter of each word in a string (use for displaying names)
 export function capitalizeFirstLetter(str) {
     if (!str) return '';
