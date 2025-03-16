@@ -31,14 +31,16 @@ class EnrollmentClassSchedulingController extends Controller
 
     public function enrollmentGetClasses(Request $request)
     {
-        $classes = YearSectionSubjects::where('year_section_id', '=', $request->yearSectionId)
-            ->with('Instructor.InstructorInfo')
-            ->with('Room')
-            ->with('Subject')
-            ->with('SecondarySchedule.Room')
+        $classes = YearSectionSubjects::where('year_section_id', $request->yearSectionId)
+            ->with([
+                'Instructor.InstructorInfo',
+                'Room',
+                'Subject',
+                'SecondarySchedule.Room'
+            ])
             ->get();
 
-        return response([
+        return response()->json([
             'classes' => $classes
         ]);
     }
@@ -63,7 +65,8 @@ class EnrollmentClassSchedulingController extends Controller
         ]);
     }
 
-    public function enrollmentUpdateSecondClass(Request $request){
+    public function enrollmentUpdateSecondClass(Request $request)
+    {
         $class = SubjectSecondarySchedule::find($request->id);
         // Check if class exists
         if (!$class) {

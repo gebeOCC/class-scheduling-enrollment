@@ -161,13 +161,21 @@ export default function ClassScheduling() {
             faculty_id: classData.faculty_id,
         }));
 
-        const [hourValue,] = classData.start_time.split(":");
-        changeMeridiem(hourValue)
+        const [sHour,] = classData.start_time.split(":");
+        const [eHour,] = classData.end_time.split(":");
+        changeMeridiem(sHour)
         if (classData.day == "TBA") {
             changeDayType('')
         }
         setSubjectEditingInfo(classData.subject)
 
+        if (classData.subject.laboratory_hours && classData.start_time == 'TBA') {
+            setClassHour('2')
+        } else if (classData.start_time != 'TBA' && classData.end_time != 'TBA') {
+            setClassHour(`${Number(eHour) - Number(sHour)}`)
+        } else {
+            setClassHour('3')
+        }
     };
 
     const editSecondSchedule = (classData) => {
@@ -197,12 +205,21 @@ export default function ClassScheduling() {
             faculty_id: classData.faculty_id,
         }));
 
-        const [hourValue,] = classData.secondary_schedule.start_time.split(":");
-        changeMeridiem(hourValue)
+        const [sHour,] = classData.secondary_schedule.start_time.split(":");
+        const [eHour,] = classData.secondary_schedule.end_time.split(":");
+        changeMeridiem(sHour)
         if (classData.secondary_schedule.day == "TBA") {
             changeDayType('')
         }
         setSubjectEditingInfo(classData.subject)
+
+        if (classData.subject.laboratory_hours && classData.secondary_schedule.start_time == 'TBA') {
+            setClassHour('3')
+        } else if (classData.secondary_schedule.start_time != 'TBA' && classData.secondary_schedule.end_time != 'TBA') {
+            setClassHour(`${Number(eHour) - Number(sHour)}`)
+        } else {
+            setClassHour('3')
+        }
     }
 
     const changeMeridiem = (hour) => {
@@ -229,8 +246,6 @@ export default function ClassScheduling() {
         setTimeout(() => {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
         }, 100);
-
-        if (classData.subject.laboratory_hours) setClassHour('5')
     }
 
     const identifyAndChangeDayType = (day) => {
@@ -345,7 +360,7 @@ export default function ClassScheduling() {
         });
         setMainScheduleConflictList(mainSchedConflicts)
         setSecondScheduleConflictList(secondSchedConflicts)
-        if(mainSchedConflicts.length > 0 || secondSchedConflicts.length > 0) {
+        if (mainSchedConflicts.length > 0 || secondSchedConflicts.length > 0) {
             const totalConflicts = mainSchedConflicts.length + secondSchedConflicts.length
             toast({
                 description: `Found ${totalConflicts} conflict!`,
@@ -889,7 +904,7 @@ export default function ClassScheduling() {
                                                         onClick={() => {
                                                             if (data.start_time == 'TBA') {
                                                                 setData('start_time', '07:30')
-                                                                setData('end_time', `${7 + Number(classHour)}:30`)
+                                                                setData('end_time', `${String(7 + Number(classHour)).padStart(2, '0')}:30`);
                                                                 collectConflictSchedules({
                                                                     start_time: '07:30',
                                                                     end_time: `${7 + Number(classHour)}:30`,
