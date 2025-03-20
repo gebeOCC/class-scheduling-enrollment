@@ -61,10 +61,16 @@
         --sidebar-border: 0 0% 70%;
         --sidebar-ring: 0 0% 30%;
 
-        --toggle-active-bg: hsl(221, 100%, 50%);
+        --toggle-active-bg: 221 100% 50%;
         /* Primary Blue */
-        --toggle-active-text: hsl(0, 0%, 100%);
+        --toggle-active-text: 0 0% 100%;
         /* White */
+
+        --timetable-outside-border: 0 0% 0%;
+        --timetable-inside-cells-border: 0 0% 50%;
+        --timetable-header-bg: 220 13% 91%;
+        --timetable-timeslots-bg: 45 100% 90%;
+        --timetable-schedules-bg: 0 0% 100%;
     }
 
     .dark {
@@ -121,11 +127,17 @@
         --sidebar-border: 0 0% 18%;
         --sidebar-ring: 221 100% 50%;
 
-        --toggle-active-bg: hsl(0, 0%, 25%);
+        --toggle-active-bg: 0 0% 25%;
         /* Dark Gray */
-        --toggle-active-text: hsl(0, 0%, 85%);
+        --toggle-active-text: 0 0% 85%;
         /* Light Gray */
-    }
+
+        --timetable-outside-border: 0 0% 50%;
+        --timetable-inside-cells-border: 0 0% 50%;
+        --timetable-header-bg: 0 0% 7%;
+        --timetable-timeslots-bg: 0 0% 8%;
+        --timetable-cell-bg: 0 0% 100%;
+        }
 
     .maroon {
         /* Backgrounds & Foregrounds */

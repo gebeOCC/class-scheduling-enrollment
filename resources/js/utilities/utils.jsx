@@ -238,3 +238,51 @@ export function identifyDayType(dayString) {
     }
     return "Single"
 }
+
+const dayMapping = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+export function expandConsecutiveDays(input) {
+    if (input.includes("-")) {
+        // Handle consecutive ranges (e.g., "Mon-Thu")
+        const [start, end] = input.split("-");
+        const startIndex = dayMapping.findIndex(day => day.startsWith(start));
+        const endIndex = dayMapping.findIndex(day => day.startsWith(end));
+
+        if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) return [];
+        return dayMapping.slice(startIndex, endIndex + 1);
+    } else if (input.includes(",")) {
+        // Handle alternating days (e.g., "Mon,Wed,Fri")
+        return input.split(",").map(abbr => {
+            const fullDay = dayMapping.find(day => day.startsWith(abbr.trim()));
+            return fullDay || null;
+        }).filter(Boolean); // Remove null values if an invalid day is entered
+    } else {
+        // Single day case (e.g., "Mon")
+        return dayMapping.find(day => day.startsWith(input)) ? [dayMapping.find(day => day.startsWith(input))] : [];
+    }
+};
+
+export function expandAlternatingDays(input) {
+    let result = [];
+
+    input.split(",").forEach(part => {
+        part = part.trim();
+
+        if (part.includes("-")) {
+            // Handle consecutive range (e.g., "Mon-Thu")
+            const [start, end] = part.split("-");
+            const startIndex = dayMapping.findIndex(day => day.startsWith(start));
+            const endIndex = dayMapping.findIndex(day => day.startsWith(end));
+
+            if (startIndex !== -1 && endIndex !== -1 && startIndex <= endIndex) {
+                result.push(...dayMapping.slice(startIndex, endIndex + 1));
+            }
+        } else {
+            // Handle single days (e.g., "Mon", "Wed")
+            const fullDay = dayMapping.find(day => day.startsWith(part));
+            if (fullDay) result.push(fullDay);
+        }
+    });
+
+    return [...new Set(result)]; // Remove duplicates and return the final array
+};

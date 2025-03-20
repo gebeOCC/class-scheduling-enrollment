@@ -23,6 +23,9 @@ import {
     Trash,
     Megaphone,
     Check,
+    Flag,
+    FileDown,
+    ImageDown,
 } from 'lucide-react';
 import axios from 'axios';
 import PreLoader from '@/Components/preloader/PreLoader';
@@ -45,7 +48,10 @@ import {
 } from "@/components/ui/command"
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { detectMainScheduleConflict } from './ConflictUtilities';
+import { detectTwoScheduleConflict } from '../../../utilities/ConflictUtilities';
+import { Switch } from '@/Components/ui/switch';
+import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -95,6 +101,9 @@ export default function ClassScheduling() {
 
     const [open, setOpen] = React.useState(false)
     const [value, setValue] = React.useState("")
+
+    const [colorful, setColorful] = useState(true);
+    const [scheduleType, setScheduleType] = useState('tabular');
 
     const [dayType, setDayType] = useState('Single');
     const [endTImeHour, setendTImeHour] = useState('Single');
@@ -322,10 +331,10 @@ export default function ClassScheduling() {
                 setData('day', 'Monday')
                 break;
             case 'Consecutive':
-                setData('day', 'Mon-Thu')
+                setData('day', 'Mon-Fri')
                 break;
             case 'Alternating':
-                setData('day', 'Mon,Tue,Wed,Thu')
+                setData('day', 'Mon,Tue,Wed,Thu,Fri')
                 break;
         }
         setDayType(type)
@@ -344,12 +353,12 @@ export default function ClassScheduling() {
         const secondSchedConflicts = [];
 
         classes.forEach((cls) => {
-            if (detectMainScheduleConflict(editingSchedule, cls) && cls.id != editingSchedule.id) {
+            if (detectTwoScheduleConflict(editingSchedule, cls) && cls.id != editingSchedule.id) {
                 mainSchedConflicts.push(cls.id);
             }
 
             if (cls.secondary_schedule && cls.secondary_schedule.id !== editingSchedule.id) {
-                const hasConflict = detectMainScheduleConflict(editingSchedule, cls.secondary_schedule);
+                const hasConflict = detectTwoScheduleConflict(editingSchedule, cls.secondary_schedule);
                 // console.log(cls.secondary_schedule.id)
                 if (hasConflict) {
                     secondSchedConflicts.push(cls.secondary_schedule.id);
@@ -358,14 +367,16 @@ export default function ClassScheduling() {
                 }
             }
         });
+
         setMainScheduleConflictList(mainSchedConflicts)
         setSecondScheduleConflictList(secondSchedConflicts)
+
         if (mainSchedConflicts.length > 0 || secondSchedConflicts.length > 0) {
             const totalConflicts = mainSchedConflicts.length + secondSchedConflicts.length
-            toast({
-                description: `Found ${totalConflicts} conflict!`,
-                variant: "destructive",
-            })
+            // toast({
+            //     description: `Found ${totalConflicts} conflict!`,
+            //     variant: "destructive",
+            // })
         }
     };
 
@@ -528,97 +539,159 @@ export default function ClassScheduling() {
         <div className='space-y-4'>
             <Head title="Class" />
             <Card>
+                <CardContent className="p-2">
+                    <div className="flex gap-2 w-min">
+                        <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
+                            <TabsList className="grid max-w-max grid-cols-2">
+                                <TabsTrigger className="w-28" value="tabular">Tabular</TabsTrigger>
+                                <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                        <Button className="bg-green-600 hover:bg-green-500" variant="">
+                            <FileDown />
+                            Excel
+                        </Button>
+                        <Button className="bg-blue-700 hover:bg-blue-600" variant="">
+                            <ImageDown />
+                            Image
+                        </Button>
+
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                checked={colorful}
+                                onCheckedChange={(value) => setColorful(value)}
+                                id="color"
+                            />
+                            <Label htmlFor="airplane-mode">Color</Label>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
                 <CardHeader className="px-6 mt-4">
                     <CardTitle className="text-4xl font-bold" >{courseName} - {yearlevel}{section}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                {/* <TableHead>Class Code</TableHead> */}
-                                <TableHead className="w-28">Subject Code</TableHead>
-                                <TableHead>Descriptive Title</TableHead>
-                                <TableHead className="w-36">Day</TableHead>
-                                <TableHead className="w-40">Time</TableHead>
-                                <TableHead className="w-14">Room</TableHead>
-                                <TableHead className="w-32">Instructor</TableHead>
-                                <TableHead className="w-12"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {classes.map((classInfo) => {
-                                const isEditing = editing && data.id === classInfo.id && !editingSecondSchedule;
-                                const isEditingSecondary = editing && data.id === classInfo.secondary_schedule?.id && editingSecondSchedule;
+                    {scheduleType == "tabular" ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    {/* <TableHead>Class Code</TableHead> */}
+                                    <TableHead className="w-28">Subject Code</TableHead>
+                                    <TableHead>Descriptive Title</TableHead>
+                                    <TableHead className="w-36">Day</TableHead>
+                                    <TableHead className="w-40">Time</TableHead>
+                                    <TableHead className="w-14">Room</TableHead>
+                                    <TableHead className="w-32">Instructor</TableHead>
+                                    <TableHead className="w-12"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {classes.map((classInfo) => {
+                                    const isEditing = editing && data.id === classInfo.id && !editingSecondSchedule;
+                                    const isEditingSecondary = editing && data.id === classInfo.secondary_schedule?.id && editingSecondSchedule;
 
-                                return (
-                                    <React.Fragment key={classInfo.id}>
-                                        <TableRow className={`${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(classInfo.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
-                                            <TableCell>{classInfo.subject.subject_code}</TableCell>
-                                            <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title}</TableCell>
-                                            <TableCell>{classInfo.day}</TableCell>
-                                            <TableCell>
-                                                {classInfo.start_time !== "TBA"
-                                                    ? convertToAMPM(classInfo.start_time) + ' - ' + convertToAMPM(classInfo.end_time)
-                                                    : "TBA"}
-                                            </TableCell>
-                                            <TableCell>
-                                                {classInfo.room ? classInfo.room.room_name : "TBA"}
-                                            </TableCell>
-                                            <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
-                                                {classInfo.instructor ? formatFullName(classInfo.instructor.instructor_info) : "TBA"}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex justify-start space-x-1 h-full">
-                                                    <Pencil
-                                                        onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
-                                                        size={15}
-                                                        className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                                    />
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-
-                                        {classInfo.secondary_schedule && (
-                                            <TableRow className={`${isEditingSecondary ? 'bg-green-500 hover:bg-green-500' : ''} ${secondScheduleConflictList.includes(classInfo.secondary_schedule.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
+                                    return (
+                                        <React.Fragment key={classInfo.id}>
+                                            <TableRow className={`${classInfo.secondary_schedule ? 'border-b-0' : ''} ${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(classInfo.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
                                                 <TableCell>{classInfo.subject.subject_code}</TableCell>
-                                                <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
-                                                <TableCell>{classInfo.secondary_schedule.day}</TableCell>
+                                                <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title}</TableCell>
+                                                <TableCell>{classInfo.day}</TableCell>
                                                 <TableCell>
-                                                    {classInfo.secondary_schedule.start_time !== "TBA"
-                                                        ? convertToAMPM(classInfo.secondary_schedule.start_time) + ' - ' + convertToAMPM(classInfo.secondary_schedule.end_time)
+                                                    {classInfo.start_time !== "TBA"
+                                                        ? convertToAMPM(classInfo.start_time) + ' - ' + convertToAMPM(classInfo.end_time)
                                                         : "TBA"}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {classInfo.secondary_schedule.room ? classInfo.secondary_schedule.room.room_name : "TBA"}
+                                                    {classInfo.room ? classInfo.room.room_name : "TBA"}
                                                 </TableCell>
                                                 <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
                                                     {classInfo.instructor ? formatFullName(classInfo.instructor.instructor_info) : "TBA"}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex justify-evenly space-x-1 h-full">
+                                                    <div className="flex justify-start space-x-1 h-full">
                                                         <Pencil
-                                                            onClick={() => { if (!editing) editSchedule(classInfo, 'second') }}
+                                                            onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
                                                             size={15}
                                                             className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
                                                         />
-                                                        <Trash
-                                                            onClick={() => { if (!editing) deleteSecondSchedule(classInfo.secondary_schedule.id) }}
-                                                            size={15}
-                                                            className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`} />
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
+
+                                            {classInfo.secondary_schedule && (
+                                                <TableRow className={`border-t-0 ${isEditingSecondary ? 'bg-green-500 hover:bg-green-500' : ''} ${secondScheduleConflictList.includes(classInfo.secondary_schedule.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
+                                                    <TableCell>{classInfo.subject.subject_code}</TableCell>
+                                                    <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
+                                                    <TableCell>{classInfo.secondary_schedule.day}</TableCell>
+                                                    <TableCell>
+                                                        {classInfo.secondary_schedule.start_time !== "TBA"
+                                                            ? convertToAMPM(classInfo.secondary_schedule.start_time) + ' - ' + convertToAMPM(classInfo.secondary_schedule.end_time)
+                                                            : "TBA"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {classInfo.secondary_schedule.room ? classInfo.secondary_schedule.room.room_name : "TBA"}
+                                                    </TableCell>
+                                                    <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
+                                                        {classInfo.instructor ? formatFullName(classInfo.instructor.instructor_info) : "TBA"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex justify-evenly space-x-1 h-full">
+                                                            <Pencil
+                                                                onClick={() => { if (!editing) editSchedule(classInfo, 'second') }}
+                                                                size={15}
+                                                                className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                            />
+                                                            <Trash
+                                                                onClick={() => { if (!editing) deleteSecondSchedule(classInfo.secondary_schedule.id) }}
+                                                                size={15}
+                                                                className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`} />
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <>
+                            {(() => {
+                                const transformedClasses = classes.map(cls => ({
+                                    id: cls.id,
+                                    class_code: cls.class_code,
+                                    day: cls.day,
+                                    start_time: cls.start_time,
+                                    end_time: cls.end_time,
+                                    descriptive_title: cls.subject?.descriptive_title || '',
+                                    first_name: cls.instructor?.instructor_info?.first_name || '',
+                                    last_name: cls.instructor?.instructor_info?.last_name || '',
+                                    room_name: cls.room?.room_name || '',
+                                    secondary_schedule: cls.secondary_schedule
+                                        ? {
+                                            id: cls.secondary_schedule.id,
+                                            day: cls.secondary_schedule.day,
+                                            start_time: cls.secondary_schedule.start_time,
+                                            end_time: cls.secondary_schedule.end_time,
+                                            room_name: cls.secondary_schedule.room?.room_name || ''
+                                        }
+                                        : null
+                                }));
+
+                                return (
+                                    <TimeTable data={transformedClasses} colorful={colorful} />
+                                )
+                            })()}
+                        </>
+                    )}
+
                 </CardContent>
             </Card>
 
             {editing &&
-                <Card ref={bottomRef}>
+                <Card ref={bottomRef} className={`${mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 ? ' border-red-600 ' : 'border-green-500'}`}>
                     <CardHeader>
                         <CardTitle className="text-2xl">{data.subject_code} - {data.descriptive_title} <span className='text-lg italic'>{editingSecondSchedule && '(2nd schedule)'}</span></CardTitle>
                     </CardHeader>
@@ -750,7 +823,7 @@ export default function ClassScheduling() {
                                                                 key={day}
                                                                 value={day}
                                                                 aria-label="Toggle bold"
-                                                                className=" w-14 data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]"
+                                                                className=" w-14 data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]"
                                                             >
                                                                 {day}
                                                             </ToggleGroupItem>
@@ -830,7 +903,7 @@ export default function ClassScheduling() {
                                                                 {hours.filter(hour => (meridiem === 'PM' ? hour.value >= 12 : hour.value < 12)) // Filter correctly
                                                                     .map(hour => (
                                                                         <ToggleGroupItem
-                                                                            className="data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]"
+                                                                            className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]"
                                                                             key={hour.value}
                                                                             value={hour.value}>
                                                                             {hour.hour}
@@ -843,10 +916,10 @@ export default function ClassScheduling() {
                                                                 className="flex flex-col w-min justify-start"
                                                                 value={mins}
                                                                 onValueChange={(value) => startTimeChange(value, 'min')}>
-                                                                <ToggleGroupItem className="data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]" value='00'>
+                                                                <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='00'>
                                                                     00
                                                                 </ToggleGroupItem>
-                                                                <ToggleGroupItem className="data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]" value='30'>
+                                                                <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='30'>
                                                                     30
                                                                 </ToggleGroupItem>
                                                             </ToggleGroup>
@@ -856,10 +929,10 @@ export default function ClassScheduling() {
                                                                 className="flex flex-col w-min justify-start"
                                                                 value={meridiem}
                                                                 onValueChange={(value) => startTimeChange(value, 'meridiem')}>
-                                                                <ToggleGroupItem className="data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]" value='AM'>
+                                                                <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='AM'>
                                                                     AM
                                                                 </ToggleGroupItem>
-                                                                <ToggleGroupItem className="data-[state=on]:bg-[var(--toggle-active-bg)] data-[state=on]:text-[var(--toggle-active-text)]" value='PM'>
+                                                                <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='PM'>
                                                                     PM
                                                                 </ToggleGroupItem>
                                                             </ToggleGroup>

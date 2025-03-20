@@ -43,6 +43,8 @@ Route::middleware(['auth', 'program_head'])->group(function () {
         Route::get('/dashboard', [EnrollmentDashboardController::class, 'view'])->name('dashboard');
 
         Route::get('/rooms-schedules', [EnrollmentClassSchedulingController::class, 'viewRoomSchedules'])->name('room-schedules');
+        Route::post('/api/get-enrollment-rooms-schedules', [EnrollmentClassSchedulingController::class, 'getEnrollmentRoomsSchedules'])->name('enrollment.get.enrollment.rooms.schedules');
+        Route::post('/api/get-enrollment-room-schedules', [EnrollmentClassSchedulingController::class, 'getEnrollmentRoomSchedules'])->name('enrollment.get.enrollment.room.schedules');
 
         Route::get('/faculties-schedules', [EnrollmentClassSchedulingController::class, 'viewFacultySchedules'])->name('faculties-schedules');
 
