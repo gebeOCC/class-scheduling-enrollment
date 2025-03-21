@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
-class Registrar
+class Evaluator
 {
     /**
      * Handle an incoming request.
@@ -20,7 +20,7 @@ class Registrar
             return redirect()->route('login');
         }
 
-        if (auth::user()->user_role !== 'registrar') {
+        if (auth::user()->user_role !== 'evaluator') {
             abort(403);
         }
         return $next($request);

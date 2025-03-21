@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
-class Registrar
+class EnrollmentPermission
 {
     /**
      * Handle an incoming request.
@@ -16,13 +16,16 @@ class Registrar
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $userRole = auth::user()->user_role;
+
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
-        if (auth::user()->user_role !== 'registrar') {
+        if ($userRole != 'program_head' && $userRole != 'registrar' && $userRole != 'evaluator') {
             abort(403);
         }
+
         return $next($request);
     }
 }

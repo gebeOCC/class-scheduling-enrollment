@@ -189,12 +189,14 @@ export default function EnrollmentCourseSection() {
                                                     {section.student_count}/{section.max_students}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Link href={route('enrollment.view.class', {
-                                                        id: courseId,
-                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                    }) + `?section=${section.section}`}>
-                                                        <Button className="text-purple-500" variant="link">Class</Button>
-                                                    </Link>
+                                                    {user.user_role == "program_head" && (
+                                                        <Link href={route('enrollment.view.class', {
+                                                            id: courseId,
+                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                        }) + `?section=${section.section}`}>
+                                                            <Button className="text-purple-500" variant="link">Class</Button>
+                                                        </Link>
+                                                    )}
                                                     <Link href={route('enrollment.view.students', {
                                                         id: courseId,
                                                         yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')

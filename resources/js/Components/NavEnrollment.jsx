@@ -60,51 +60,55 @@ export function NavEnrollment() {
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton
-                                        tooltip="Room Schedules"
-                                        className={cn("h-10 text-md", currentUrl.startsWith("/rooms-schedules") && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                                        asChild
-                                    >
-                                        <Link
-                                            onClick={() => setOpenMobile(false)}
-                                            href={route("room-schedules")}
-                                            className="w-full flex items-center">
-                                            <DoorClosed />
-                                            <span>Rooms</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton
-                                        tooltip="Faculty Schedules"
-                                        className={cn("h-10 text-md", currentUrl.startsWith("/faculties-schedules") && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                                        asChild
-                                    >
-                                        <Link
-                                            onClick={() => setOpenMobile(false)}
-                                            href={route("faculties-schedules")}
-                                            className="w-full flex items-center">
-                                            <User />
-                                            <span>Faculties</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton
-                                        tooltip="Subject Schedules"
-                                        className={cn("h-10 text-md", currentUrl.startsWith("/subjects-schedules") && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                                        asChild
-                                    >
-                                        <Link
-                                            onClick={() => setOpenMobile(false)}
-                                            href={route("subjects-schedules")}
-                                            className="w-full flex items-center">
-                                            <NotebookText />
-                                            <span>Subjects</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
+                                {user.user_role == "program_head" && (
+                                    <>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton
+                                                tooltip="Room Schedules"
+                                                className={cn("h-10 text-md", currentUrl.startsWith("/rooms-schedules") && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                                                asChild
+                                            >
+                                                <Link
+                                                    onClick={() => setOpenMobile(false)}
+                                                    href={route("enrollment.room-schedules")}
+                                                    className="w-full flex items-center">
+                                                    <DoorClosed />
+                                                    <span>Rooms</span>
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton
+                                                tooltip="Faculty Schedules"
+                                                className={cn("h-10 text-md", currentUrl.startsWith("/faculties-schedules") && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                                                asChild
+                                            >
+                                                <Link
+                                                    onClick={() => setOpenMobile(false)}
+                                                    href={route("enrollment.faculties-schedules")}
+                                                    className="w-full flex items-center">
+                                                    <User />
+                                                    <span>Faculties</span>
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton
+                                                tooltip="Subject Schedules"
+                                                className={cn("h-10 text-md", currentUrl.startsWith("/subjects-schedules") && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                                                asChild
+                                            >
+                                                <Link
+                                                    onClick={() => setOpenMobile(false)}
+                                                    href={route("enrollment.subjects-schedules")}
+                                                    className="w-full flex items-center">
+                                                    <NotebookText />
+                                                    <span>Subjects</span>
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    </>
+                                )}
                             </SidebarMenu>
                         </>
                     }

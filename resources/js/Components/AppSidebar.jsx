@@ -1,5 +1,4 @@
 import { NavMain } from "./nav-main"
-import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
 import {
@@ -20,7 +19,6 @@ export function AppSidebar({ ...props }) {
             <SidebarContent>
                 <NavEnrollment />
                 <NavMain />
-                {/* <NavProjects projects={data.projects} /> */}
             </SidebarContent>
             <SidebarFooter>
                 <NavUser />

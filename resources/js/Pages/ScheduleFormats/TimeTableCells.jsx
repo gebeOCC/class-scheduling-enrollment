@@ -1,6 +1,7 @@
-import { expandAlternatingDays, expandConsecutiveDays, formatFullName, hasTimeConflict, identifyDayType } from '@/utilities/utils';
+import { expandAlternatingDays, expandConsecutiveDays, formatFullName, hasTimeConflict, identifyDayType } from '@/lib/utils';
 import React from 'react';
-import { detectTwoScheduleConflict } from '../../utilities/ConflictUtilities';
+import { detectTwoScheduleConflict } from '../../lib/ConflictUtilities';
+import { PiStudent } from 'react-icons/pi';
 
 // Helper function to convert time to row index
 function timeToRowIndex(time) {

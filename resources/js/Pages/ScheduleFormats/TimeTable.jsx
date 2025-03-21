@@ -1,5 +1,5 @@
 import React from "react";
-import { convertToAMPM, formatFullName, identifyDayType } from "../../utilities/utils";
+import { convertToAMPM, formatFullName, identifyDayType } from "../../lib/utils";
 import { PiStudent } from "react-icons/pi";
 import TimeTableCells from "./TimeTableCells";
 

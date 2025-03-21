@@ -1,35 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import {
-    ToggleGroup,
-    ToggleGroupItem
-} from "@/components/ui/toggle-group"
-import {
-    Pencil,
-    Trash,
-    Megaphone,
-    Check,
-    Flag,
-    FileDown,
-    ImageDown,
-} from 'lucide-react';
 import axios from 'axios';
 import PreLoader from '@/Components/preloader/PreLoader';
-import { convertToAMPM, formatFullName, identifyDayType } from '@/utilities/utils';
+import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
+import React, { useEffect, useState, useRef } from 'react'
+import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Pencil, Trash, Megaphone, Check, Flag, FileDown, ImageDown, } from 'lucide-react';
+import { convertToAMPM, formatFullName, identifyDayType } from '@/lib/utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -38,20 +16,12 @@ import { Label } from '@/Components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { detectTwoScheduleConflict } from '../../../utilities/ConflictUtilities';
+import { detectTwoScheduleConflict } from '../../../lib/ConflictUtilities';
 import { Switch } from '@/Components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -100,13 +70,11 @@ export default function ClassScheduling() {
     const [editingSecondSchedule, setEditingSecondSchedule] = useState(false);
 
     const [open, setOpen] = React.useState(false)
-    const [value, setValue] = React.useState("")
 
     const [colorful, setColorful] = useState(true);
     const [scheduleType, setScheduleType] = useState('tabular');
 
     const [dayType, setDayType] = useState('Single');
-    const [endTImeHour, setendTImeHour] = useState('Single');
     const [meridiem, setMeridiem] = useState('AM');
     const [classHour, setClassHour] = useState('3');
 
@@ -143,6 +111,11 @@ export default function ClassScheduling() {
                 setFetching(false)
             })
     }
+
+
+    useEffect(() => {
+        getCLasses()
+    }, [])
 
     const editMainSchedule = (classData) => {
         if (classData.day != 'TBA' || classData.start_time != 'TBA') {
@@ -276,67 +249,25 @@ export default function ClassScheduling() {
 
     }
 
-    useEffect(() => {
-        getCLasses()
-    }, [])
-
-    const [selectedDays, setSelectedDays] = useState(["Monday"]);
-
-    const handleDayClick = (day) => {
-        if (!data.day.includes("-")) {
-            // If only one day is selected, set a new range
-            setData("day", data.day + "-" + day);
-            return;
-        }
-
-        const [start, end] = data.day.split("-");
-        const startDay = dayNumber[start];
-        const endDay = dayNumber[end];
-        const currentDay = dayNumber[day];
-
-        if (currentDay <= startDay) {
-            // If clicked day is before start, update start
-            setData("day", day + "-" + end);
-        } else if (currentDay >= endDay) {
-            // If clicked day is after end, update end
-            setData("day", start + "-" + day);
-        } else {
-            // If clicked day is inside, determine if closer to start or end
-            const distanceToStart = Math.abs(startDay - currentDay);
-            const distanceToEnd = Math.abs(endDay - currentDay);
-
-            if (distanceToStart < distanceToEnd) {
-                // Closer to start → shrink from start
-                setData("day", day + "-" + end);
-            } else {
-                // Closer to end → shrink from end
-                setData("day", start + "-" + day);
-            }
-        }
-    };
-
-    const insideDays = (day) => {
-        const [start, end] = data.day.split("-");
-
-        const startDay = dayNumber[start]; // Convert start to number
-        const endDay = dayNumber[end]; // Convert end to number
-        const currentDay = dayNumber[day]; // Convert input to number
-
-        return currentDay >= startDay && currentDay <= endDay;
-    };
+    const dayOnchange = (day) => {
+        collectConflictSchedules({ day: day, start_time: data.start_time, end_time: data.end_time, id: data.id })
+        setData('day', day)
+    }
 
     const changeDayType = (type) => {
+        let day
         switch (type) {
             case 'Single':
-                setData('day', 'Monday')
+                day = "Monday"
                 break;
             case 'Consecutive':
-                setData('day', 'Mon-Fri')
+                day = "Mon-Fri"
                 break;
             case 'Alternating':
-                setData('day', 'Mon,Tue,Wed,Thu,Fri')
+                day = "Mon,Tue,Wed,Thu,Fri"
                 break;
         }
+        dayOnchange(day)
         setDayType(type)
     }
 
@@ -371,13 +302,13 @@ export default function ClassScheduling() {
         setMainScheduleConflictList(mainSchedConflicts)
         setSecondScheduleConflictList(secondSchedConflicts)
 
-        if (mainSchedConflicts.length > 0 || secondSchedConflicts.length > 0) {
-            const totalConflicts = mainSchedConflicts.length + secondSchedConflicts.length
-            // toast({
-            //     description: `Found ${totalConflicts} conflict!`,
-            //     variant: "destructive",
-            // })
-        }
+        // if (mainSchedConflicts.length > 0 || secondSchedConflicts.length > 0) {
+        //     const totalConflicts = mainSchedConflicts.length + secondSchedConflicts.length
+        //     toast({
+        //         description: `Found ${totalConflicts} conflict!`,
+        //         variant: "destructive",
+        //     })
+        // }
     };
 
     const startTimeChange = (value, type) => {
@@ -706,7 +637,7 @@ export default function ClassScheduling() {
                                         <div className='flex gap-2'>
                                             <div className='flex justify-between w-full'>
                                                 <Label htmlFor="text-end">Day</Label>
-                                                {schoolYear.semester_id == 3 &&
+                                                {/* {schoolYear.semester_id == 3 && */}
                                                     <RadioGroup
                                                         disabled={data.day == 'TBA'}
                                                         value={dayType}
@@ -726,7 +657,7 @@ export default function ClassScheduling() {
                                                             <Label htmlFor="r3">Alternating</Label>
                                                         </div>
                                                     </RadioGroup>
-                                                }
+                                                 {/* } */}
                                             </div>
                                             <Megaphone className='self-center text-transparent' />
                                         </div>
@@ -764,7 +695,7 @@ export default function ClassScheduling() {
                                                 return (
                                                     <div className="relative flex items-center w-full gap-1">
                                                         {/* Start Day Select */}
-                                                        <Select value={start} onValueChange={(value) => setData("day", value + "-" + end)}>
+                                                        <Select value={start} onValueChange={(value) => dayOnchange(`${value}-${end}`)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select a day" />
                                                             </SelectTrigger>
@@ -780,7 +711,7 @@ export default function ClassScheduling() {
                                                         <span className="text-2xl">-</span>
 
                                                         {/* End Day Select */}
-                                                        <Select value={end} onValueChange={(value) => setData("day", start + "-" + value)}>
+                                                        <Select value={end} onValueChange={(value) => dayOnchange(`${start}-${value}`)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select a day" />
                                                             </SelectTrigger>
@@ -802,9 +733,7 @@ export default function ClassScheduling() {
                                                         .filter(day => day) // Remove empty strings or falsy values
                                                         .sort((a, b) => days.indexOf(a) - days.indexOf(b)) // Sort based on daysOrder
                                                         .join(","); // Join without spaces
-
-                                                    setData('day', daysValue)
-                                                    console.log(daysValue)
+                                                    dayOnchange(daysValue)
                                                 }
 
                                                 return (

@@ -16,7 +16,7 @@ import { Switch } from "@/Components/ui/switch";
 import { Label } from "@/Components/ui/label";
 import { FileDown, ImageDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import { convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from "@/utilities/utils";
+import { convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from "@/lib/utils";
 import TabularSchedule from "@/Pages/ScheduleFormats/TabularSchedule";
 
 export default function RoomSchedules() {
@@ -52,19 +52,9 @@ export default function RoomSchedules() {
                         const dayType = identifyDayType(sched.day);
 
                         if (sched.day !== "TBA") {
-                            switch (dayType) {
-                                case "Single":
-                                    schedLength++;
-                                    break;
-                                case "Consecutive":
-                                    schedLength += expandConsecutiveDays(sched.day).length;
-                                    break;
-                                case "Alternating":
-                                    schedLength += expandAlternatingDays(sched.day).length;
-                                    break;
-                                default:
-                                    break;
-                            }
+                            schedLength = schedLength + countDays(dayType, sched.day)
+                        } else {
+                            schedLength++;
                         }
                     });
 
@@ -84,11 +74,24 @@ export default function RoomSchedules() {
             })
     }
 
+    const countDays = (dayType, day) => {
+        switch (dayType) {
+            case "Single":
+                return 1;
+            case "Consecutive":
+                return expandConsecutiveDays(day).length;
+            case "Alternating":
+                return expandAlternatingDays(day).length;
+            default:
+                break;
+        }
+    }
+
     useEffect(() => {
         getEnrollmentRoomSchedules();
     }, []);
 
-    if (loading) return <PreLoader title="room schedules" />;
+    if (loading) return <PreLoader title="Room schedules" />;
 
     return (
         <div className="space-y-4">
@@ -105,7 +108,7 @@ export default function RoomSchedules() {
                         </Tabs>
 
                         <Select value={selectedRoom} onValueChange={(value) => setSelectedRoom(value)}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-48 truncate overflow-hidden">
                                 <SelectValue placeholder="Select a room" />
                             </SelectTrigger>
                             <SelectContent>
@@ -152,7 +155,7 @@ export default function RoomSchedules() {
                                     {scheduleType == "timetable" ? (
                                         <TimeTable data={room.schedules} colorful={colorful} />
                                     ) : (
-                                        <TabularSchedule data={room.schedules} />
+                                        <TabularSchedule data={room.schedules} type="room"/>
                                     )}
                                 </CardContent>
                             </Card>

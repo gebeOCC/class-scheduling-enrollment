@@ -21,7 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'student' => \App\Http\Middleware\Student::class,
             'program_head' => \App\Http\Middleware\ProgramHead::class,
             'registrar' => \App\Http\Middleware\Registrar::class,
+            'evaluator' => \App\Http\Middleware\Evaluator::class,
             'EnrollmentPrepOngoing' => \App\Http\Middleware\EnrollmentStatus::class,
+            'EnrollmentPermission' => \App\Http\Middleware\EnrollmentPermission::class,
         ]);
         //
     })
