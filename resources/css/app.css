@@ -71,6 +71,15 @@
         --timetable-header-bg: 220 13% 91%;
         --timetable-timeslots-bg: 45 100% 90%;
         --timetable-schedules-bg: 0 0% 100%;
+
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+
+        --male-label-color: 0, 0%, 0%;
+        --female-label-color: 0, 0%, 0%;
     }
 
     .dark {
@@ -137,7 +146,16 @@
         --timetable-header-bg: 0 0% 7%;
         --timetable-timeslots-bg: 0 0% 8%;
         --timetable-cell-bg: 0 0% 100%;
-        }
+
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+
+        --male-label-color: 0, 0%, 100%;
+        --female-label-color: 0, 0%, 100%;
+    }
 
     .maroon {
         /* Backgrounds & Foregrounds */

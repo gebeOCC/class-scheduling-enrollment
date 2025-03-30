@@ -1,5 +1,5 @@
 import React from "react";
-import { convertToAMPM, formatFullName } from "../../lib/utils";
+import { convertToAMPM, formatFullName } from "../../Lib/Utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { PiStudent } from "react-icons/pi";
 function TabularSchedule({ data, type }) {

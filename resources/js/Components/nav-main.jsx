@@ -1,6 +1,6 @@
 import { usePage } from "@inertiajs/react";
 import { CalendarRange, BookOpen, User, Presentation } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
 import {
     SidebarGroup,
@@ -24,16 +24,16 @@ export function NavMain() {
         ...(user.user_role === "program_head"
             ? [
                 { name: "Curriculum", route: "curriculum", icon: BookOpen },
-                { name: "Faculty List", route: "dashboard", icon: User },
+                { name: "Faculty List", route: "faculty-list", icon: User },
             ]
             : []
         ),
         ...(["registrar", "program_head", "evaluator", "faculty"].includes(user.user_role)
-            ? [{ name: "Classes", route: "dashboard", icon: Presentation }]
+            ? [{ name: "Classes", route: "classes", icon: Presentation }]
             : []
         ),
     ];
-    
+
     return (
         <SidebarGroup>
             <SidebarMenu>

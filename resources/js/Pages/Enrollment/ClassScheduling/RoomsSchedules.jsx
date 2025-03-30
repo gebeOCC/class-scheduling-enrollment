@@ -16,7 +16,7 @@ import { Switch } from "@/Components/ui/switch";
 import { Label } from "@/Components/ui/label";
 import { FileDown, ImageDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import { convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from "@/lib/utils";
+import { convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from "@/Lib/Utils";
 import TabularSchedule from "@/Pages/ScheduleFormats/TabularSchedule";
 
 export default function RoomSchedules() {

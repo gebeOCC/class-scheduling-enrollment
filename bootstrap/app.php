@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'evaluator' => \App\Http\Middleware\Evaluator::class,
             'EnrollmentPrepOngoing' => \App\Http\Middleware\EnrollmentStatus::class,
             'EnrollmentPermission' => \App\Http\Middleware\EnrollmentPermission::class,
+            'ClassesPermission' => \App\Http\Middleware\ClassesPermission::class,
+        'UserManagementPermission' => \App\Http\Middleware\UserManagementPermission::class,
         ]);
         //
     })

@@ -1,9 +1,10 @@
 import React from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import DemoPage from './EnrolledStudentList/Page';
 
 export default function EnrolledStudentList() {
     return (
-        <div>EnrolledStudentList</div>
+        <DemoPage/>
     )
 }
 

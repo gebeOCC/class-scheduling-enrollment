@@ -6,8 +6,8 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { Pencil, Trash, Megaphone, Check, Flag, FileDown, ImageDown, } from 'lucide-react';
-import { convertToAMPM, formatFullName, identifyDayType } from '@/lib/utils';
+import { Pencil, Trash, Megaphone, Check, FileDown, ImageDown, } from 'lucide-react';
+import { convertToAMPM, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -17,9 +17,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Comp
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 import { useToast } from '@/hooks/use-toast';
-import { detectTwoScheduleConflict } from '../../../lib/ConflictUtilities';
+import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
 import { Switch } from '@/Components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 
@@ -62,7 +62,6 @@ export default function ClassScheduling() {
 
     const [fetching, setFetching] = useState(true);
     const { yearSectionId, courseName, yearlevel, section } = usePage().props;
-    const { schoolYear } = usePage().props.auth;
 
     const bottomRef = useRef(null);
 
@@ -79,7 +78,6 @@ export default function ClassScheduling() {
     const [classHour, setClassHour] = useState('3');
 
     const [classes, setClasses] = useState([])
-    const [subjectEditingInfo, setSubjectEditingInfo] = useState([])
     const [rooms, setRooms] = useState([])
     const [instructors, setInstructors] = useState([])
     const [mainScheduleConflictList, setMainScheduleConflictList] = useState([])
@@ -149,7 +147,6 @@ export default function ClassScheduling() {
         if (classData.day == "TBA") {
             changeDayType('')
         }
-        setSubjectEditingInfo(classData.subject)
 
         if (classData.subject.laboratory_hours && classData.start_time == 'TBA') {
             setClassHour('2')
@@ -193,7 +190,6 @@ export default function ClassScheduling() {
         if (classData.secondary_schedule.day == "TBA") {
             changeDayType('')
         }
-        setSubjectEditingInfo(classData.subject)
 
         if (classData.subject.laboratory_hours && classData.secondary_schedule.start_time == 'TBA') {
             setClassHour('3')
@@ -290,25 +286,14 @@ export default function ClassScheduling() {
 
             if (cls.secondary_schedule && cls.secondary_schedule.id !== editingSchedule.id) {
                 const hasConflict = detectTwoScheduleConflict(editingSchedule, cls.secondary_schedule);
-                // console.log(cls.secondary_schedule.id)
                 if (hasConflict) {
                     secondSchedConflicts.push(cls.secondary_schedule.id);
-                    // console.log(cls.secondary_schedule.id)
-                    // console.log('has conflict')
                 }
             }
         });
 
         setMainScheduleConflictList(mainSchedConflicts)
         setSecondScheduleConflictList(secondSchedConflicts)
-
-        // if (mainSchedConflicts.length > 0 || secondSchedConflicts.length > 0) {
-        //     const totalConflicts = mainSchedConflicts.length + secondSchedConflicts.length
-        //     toast({
-        //         description: `Found ${totalConflicts} conflict!`,
-        //         variant: "destructive",
-        //     })
-        // }
     };
 
     const startTimeChange = (value, type) => {
@@ -408,7 +393,7 @@ export default function ClassScheduling() {
             })
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         clearErrors();
 
         let errors = {};
@@ -421,48 +406,31 @@ export default function ClassScheduling() {
             return;
         }
 
+        let url
+
         if (editing && !editingSecondSchedule) {
-            submitMainSchedule()
+            url = "enrollment.update.main.class"
         } else if (editSecondSchedule) {
-            submitSecondSchedule()
+            url = "enrollment.update.second.class"
         }
+
+        await post(route(url, data), {
+            onSuccess: () => {
+                reset()
+                setEditing(false)
+                setEditingSecondSchedule(false)
+                toast({
+                    description: "Class updated successfully.",
+                    variant: "success",
+                })
+                getCLasses()
+                setMainScheduleConflictList([])
+                setSecondScheduleConflictList([])
+            },
+            preserveScroll: true,
+        });
+
     };
-
-    const submitMainSchedule = async () => {
-        await post(route("enrollment.update.main.class", data), {
-            onSuccess: () => {
-                reset()
-                setEditing(false)
-                setEditingSecondSchedule(false)
-                toast({
-                    description: "Class updated successfully.",
-                    variant: "success",
-                })
-                getCLasses()
-                setMainScheduleConflictList([])
-                setSecondScheduleConflictList([])
-            },
-            preserveScroll: true,
-        });
-    }
-
-    const submitSecondSchedule = async () => {
-        await post(route("enrollment.update.second.class", data), {
-            onSuccess: () => {
-                reset()
-                setEditing(false)
-                setEditingSecondSchedule(false)
-                toast({
-                    description: "Class updated successfully.",
-                    variant: "success",
-                })
-                getCLasses()
-                setMainScheduleConflictList([])
-                setSecondScheduleConflictList([])
-            },
-            preserveScroll: true,
-        });
-    }
 
     if (fetching) return <PreLoader title="Class" />
 

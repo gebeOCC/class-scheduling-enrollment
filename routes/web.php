@@ -4,30 +4,14 @@ use App\Http\Controllers\Enrollment\ClassScheduling\EnrollmentClassSchedulingCon
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
 use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect()->route('profile.edit'); // Redirect to dashboard if authenticated
-    }
-
-    return redirect()->route('login'); // Redirect to login if unauthenticated
-
-    // return Inertia::render('Welcome', [
-    //     'canLogin' => Route::has('login'),
-    //     'canRegister' => Route::has('register'),
-    //     'laravelVersion' => Application::VERSION,
-    //     'phpVersion' => PHP_VERSION,
-    // ]);
-});
+Route::get('/', [HomeController::class, 'index']);
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 Route::middleware(['auth', 'EnrollmentPrepOngoing', 'EnrollmentPermission'])->group(function () {
@@ -37,6 +21,7 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'EnrollmentPermission'])->gr
     Route::get('/dashboard', [EnrollmentDashboardController::class, 'view'])->name('dashboard');
     Route::get('/enrollment/{id}/students/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewStudents'])->name('enrollment.view.students');
     Route::get('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'enrollStudent'])->name('enrollment.view.enroll-student');
+    Route::post('/api/get-enrollment-dashboard-data', [EnrollmentDashboardController::class, 'getEnrollmentDashboardData'])->name('get.enrollment.dashboard.data');
 });
 
 Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(function () {
@@ -61,3 +46,6 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(func
 require __DIR__ . '/auth.php';
 require __DIR__ . '/ProgramHeadRoute.php';
 require __DIR__ . '/RegistrarRoute.php';
+require __DIR__ . '/ClassesRoute.php';
+require __DIR__ . '/UserManagementRoute.php';
+require __DIR__ . '/SchoolyearManagementRoute.php';

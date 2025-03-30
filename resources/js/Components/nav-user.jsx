@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { usePage } from "@inertiajs/react";
-import { formatFullNameFML } from '@/lib/utils';
+import { formatFullNameFML } from '@/Lib/Utils';
 import { ModeToggle } from '@/Components/mode-toggle';
 
 import {

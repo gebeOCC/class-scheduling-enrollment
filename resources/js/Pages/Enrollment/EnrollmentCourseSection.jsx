@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { usePage, useForm } from "@inertiajs/react";
-import { cn } from "@/lib/utils"
+import { cn } from "@/Lib/Utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -34,6 +34,7 @@ import { Head } from '@inertiajs/react';
 import axios from "axios";
 import PreLoader from "@/Components/preloader/PreLoader";
 import { Separator } from "@/components/ui/separator"
+import { PageTitle } from "@/Components/ui/PageTitle";
 
 export default function EnrollmentCourseSection() {
     const { courseId, error, course } = usePage().props;
@@ -144,7 +145,8 @@ export default function EnrollmentCourseSection() {
     return (
         <>
             <Head title="Sections" />
-            <h1 className="text-4xl mb-4">{course.course_name}</h1>
+            <PageTitle className="mb-4" align="center">{course.course_name}</PageTitle>
+
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {yearLevels && yearLevels.length > 0 ? (
                     yearLevels.map((yearLevel) => (
@@ -194,20 +196,20 @@ export default function EnrollmentCourseSection() {
                                                             id: courseId,
                                                             yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                                         }) + `?section=${section.section}`}>
-                                                            <Button className="text-purple-500" variant="link">Class</Button>
+                                                            <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
                                                         </Link>
                                                     )}
                                                     <Link href={route('enrollment.view.students', {
                                                         id: courseId,
                                                         yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                                     }) + `?section=${section.section}`}>
-                                                        <Button className="text-green-500" variant="link">Students</Button>
+                                                        <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
                                                     </Link>
                                                     <Link href={route('enrollment.view.enroll-student', {
                                                         id: courseId,
                                                         yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                                     }) + `?section=${section.section}`}>
-                                                        <Button className="text-blue-500 hidden sm:inline" variant="link">Enroll Student</Button>
+                                                        <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
                                                     </Link>
                                                 </TableCell>
                                             </TableRow>
