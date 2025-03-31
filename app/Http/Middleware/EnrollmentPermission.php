@@ -22,7 +22,7 @@ class EnrollmentPermission
             return redirect()->route('login');
         }
 
-        if ($userRole != 'program_head' && $userRole != 'registrar' && $userRole != 'evaluator') {
+        if ($userRole != 'program_head' && $userRole != 'registrar' && $userRole != 'evaluator' && $userRole != 'student') {
             abort(403);
         }
 

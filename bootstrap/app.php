@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'EnrollmentPrepOngoing' => \App\Http\Middleware\EnrollmentStatus::class,
             'EnrollmentPermission' => \App\Http\Middleware\EnrollmentPermission::class,
             'ClassesPermission' => \App\Http\Middleware\ClassesPermission::class,
-        'UserManagementPermission' => \App\Http\Middleware\UserManagementPermission::class,
+            'UserManagementPermission' => \App\Http\Middleware\UserManagementPermission::class,
         ]);
         //
     })

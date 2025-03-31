@@ -9,6 +9,7 @@ import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartToo
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, XAxis } from 'recharts';
 import { GraduationCap, TrendingUp } from 'lucide-react';
 import { PageTitle } from '@/Components/ui/PageTitle';
+import { UserCheck } from "lucide-react";
 
 const studentTypeChartConfig = {
     Freshman: { color: "#FFD700" },  // Yellow
@@ -146,6 +147,69 @@ export default function Dashboard() {
         }));
     };
 
+    const AnimatedCount = ({ target }) => {
+        const [count, setCount] = useState(() => {
+            return Number(localStorage.getItem("total")) || 0; // Load last count
+        });
+
+        useEffect(() => {
+            const prevTotal = Number(localStorage.getItem("total")) || 0; // Get last count
+            const difference = target - prevTotal;
+            const duration = 450;
+            const stepTime = 30;
+            const steps = Math.ceil(duration / stepTime);
+            let step = 0;
+
+            if (difference !== 0) {
+                const timer = setInterval(() => {
+                    step++;
+                    const progress = step / steps;
+                    const currentValue = Math.round(prevTotal + difference * progress);
+
+                    if (step >= steps) {
+                        setCount(target);
+                        localStorage.setItem("total", target); // Save to localStorage
+                        clearInterval(timer);
+                    } else {
+                        setCount(currentValue);
+                    }
+                }, stepTime);
+
+                return () => clearInterval(timer);
+            }
+        }, [target]);
+
+        return <span className="text-md sm:text-4xl font-bold">{count}</span>;
+    };
+
+    const EnrolledCard = ({ reports, selectedCourse }) => {
+        const totalEnrolled = reports
+            .filter((report) => selectedCourse == 0 || report.id == selectedCourse)
+            .reduce((total, report) => total + report.enrolled_student_count, 0);
+
+        return (
+            <Card className="items-center flex flex-col justify-center">
+                {/* <div> */}
+                    <CardHeader className="flex items-center justify-between">
+                        <CardTitle>Total Enrolled</CardTitle>
+                        <UserCheck className="w-6 h-6 text-gray-500" />
+                    </CardHeader>
+
+                    <CardContent className="flex flex-col items-center gap-2 pt-4">
+                        {reports.length > 0 ? (
+                            <>
+                                <AnimatedCount target={totalEnrolled} />
+                                <span className="text-gray-500 text-sm">students enrolled</span>
+                            </>
+                        ) : (
+                            <span className="text-gray-400 text-sm">No data available</span>
+                        )}
+                    </CardContent>
+                {/* </div> */}
+            </Card>
+        );
+    };
+
     const selectCourse = (value) => {
         setSelectedCourse(value)
     }
@@ -173,21 +237,7 @@ export default function Dashboard() {
                 <PageTitle align="center" size="md" className="">{reports?.[0]?.course_name || "No Data"}</PageTitle>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Total Enrolled</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex gap-2 pt-4 text-md sm:text-2xl lg:text-4xl">
-                        <GraduationCap />
-                        {reports
-                            .filter(
-                                (report) =>
-                                    selectedCourse == 0 || report.id == selectedCourse
-                            )
-                            .reduce((total, report) => total + report.enrolled_student_count, 0)}
-                    </CardContent>
-                </Card>
-
+                <EnrolledCard reports={reports} selectedCourse={selectedCourse} />
                 <Card>
                     <CardHeader>
                         <CardTitle>Student Types</CardTitle>
@@ -245,63 +295,63 @@ export default function Dashboard() {
                         </ChartContainer>
                     </CardContent>
                 </Card>
-            </div>
-            <Card className="col-span-3 row-span-3">
-                <CardHeader>
-                    <CardTitle>Enrollment Timeline</CardTitle>
-                </CardHeader>
-                <CardContent className="px-2 sm:p-6">
-                    <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-                        <AreaChart
-                            accessibilityLayer
-                            data={getEnrollmentStatisticsData(reports, selectedCourse)}
-                            margin={{
-                                left: 12,
-                                right: 12,
-                            }}
-                        >
-                            <CartesianGrid vertical={false} />
-                            <XAxis
-                                dataKey="date"
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={8}
-                                // minTickGap={32}
-                                tickFormatter={(value) => {
-                                    const date = new Date(value);
-                                    return date.toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                    });
+                <Card className="col-span-full">
+                    <CardHeader>
+                        <CardTitle>Enrollment Timeline</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-2 sm:p-6">
+                        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+                            <AreaChart
+                                accessibilityLayer
+                                data={getEnrollmentStatisticsData(reports, selectedCourse)}
+                                margin={{
+                                    left: 12,
+                                    right: 12,
                                 }}
-                            />
-                            <ChartTooltip
-                                content={
-                                    <ChartTooltipContent
-                                        className="w-[150px]"
-                                        nameKey="total_students" // Ensure this matches your data structure
-                                        labelFormatter={(value) => {
-                                            return new Date(value).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            });
-                                        }}
-                                    />
-                                }
-                            />
-                            <Area
-                                dataKey="total_students" // This ensures it maps to your data correctly
-                                type="monotone"
-                                stroke={chartConfig.total_students.color} // Corrected color reference
-                                strokeWidth={2}
-                                dot={false}
-                                fillOpacity={0.3}
-                            />
-                        </AreaChart>
-                    </ChartContainer>
-                </CardContent>
-            </Card>
+                            >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="date"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={8}
+                                    // minTickGap={32}
+                                    tickFormatter={(value) => {
+                                        const date = new Date(value);
+                                        return date.toLocaleDateString("en-US", {
+                                            month: "short",
+                                            day: "numeric",
+                                        });
+                                    }}
+                                />
+                                <ChartTooltip
+                                    content={
+                                        <ChartTooltipContent
+                                            className="w-[150px]"
+                                            nameKey="total_students" // Ensure this matches your data structure
+                                            labelFormatter={(value) => {
+                                                return new Date(value).toLocaleDateString("en-US", {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                });
+                                            }}
+                                        />
+                                    }
+                                />
+                                <Area
+                                    dataKey="total_students" // This ensures it maps to your data correctly
+                                    type="monotone"
+                                    stroke={chartConfig.total_students.color} // Corrected color reference
+                                    strokeWidth={2}
+                                    dot={false}
+                                    fillOpacity={0.3}
+                                />
+                            </AreaChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }

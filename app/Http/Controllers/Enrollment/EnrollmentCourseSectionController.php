@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Enrollment;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\CurriculumTerm;
 use App\Models\CurriculumTermSubject;
 use Illuminate\Http\Request;
@@ -192,9 +193,40 @@ class EnrollmentCourseSectionController extends Controller
         return Inertia::render('Enrollment/EnrolledStudentList');
     }
 
-    public function enrollStudent()
+    public function enrollStudent($hashedCourseId, $yearlevel, Request $request)
     {
-        return Inertia::render('Enrollment/EnrollStudent');
+        $course = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $hashedCourseId)
+            ->first();
+
+        $section = $request->query('section');
+
+        $yearLevels = [
+            'First-Year' => '1',
+            'Second-Year' => '2',
+            'Third-Year' => '3',
+            'Fourth-Year' => '4'
+        ];
+
+        $yearLevelNumber = $yearLevels[$yearlevel] ?? '';
+
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        $yearSection = YearSection::where('school_year_id', '=', $schoolYear->id)
+            ->where('course_id', '=', $course->id)
+            ->where('year_level_id', '=', $yearLevelNumber)
+            ->where('section', '=', $section)
+            ->first();
+        return Inertia::render(
+            'Enrollment/EnrollStudent',
+            [
+                'courseId' => $course->id,
+                'yearlevel' => $yearLevelNumber,
+                'section' => $section,
+                'yearSectionId' =>  $yearSection->id,
+                'courseName' => $course->course_name_abbreviation,
+            ]
+        );
     }
 
     private function getPreparingOrOngoingSchoolYear()
